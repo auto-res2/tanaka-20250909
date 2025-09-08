@@ -17,32 +17,47 @@ import torch.nn.functional as F
 # PyTorch ≥2.6 switched the default behaviour of `torch.load` to `weights_only=True`,
 # which breaks deserialisation of objects that are not simple tensors – such as
 # the `torch_geometric.data.data.*Attr` instances stored inside OGB processed
-# dataset files.  We **auto-discover** every attribute class defined in
-# `torch_geometric.data.data` whose name ends with "Attr" and register them in
-# the global allow-list so that the secure loader can resolve those symbols.
+# dataset files.  We **auto-discover** every attribute / storage class defined in
+# torch-geometric's internal modules and put them on the allow-list so the new
+# secure loader can resolve those symbols safely.
 # -----------------------------------------------------------------------------
 try:
     import importlib
 
-    tg_data_mod = importlib.import_module("torch_geometric.data.data")
-
-    # The helper is only available on recent PyTorch versions – we guard the
-    # import so that older runtimes degrade gracefully.
+    # Helper is only present on recent PyTorch builds; wrap everything in a
+    # try/except so that older runtimes degrade gracefully.
     from torch.serialization import add_safe_globals  # type: ignore
 
+    # ------------------------------------------------------------------
+    # 1)  All *Attr classes (already handled previously)                   
+    # ------------------------------------------------------------------
+    tg_data_mod = importlib.import_module("torch_geometric.data.data")
     attr_types = {
         getattr(tg_data_mod, name)
         for name in dir(tg_data_mod)
         if name.endswith("Attr") and isinstance(getattr(tg_data_mod, name), type)
     }
-    if attr_types:
-        add_safe_globals(attr_types)  # pylint: disable=no-member
+
+    # ------------------------------------------------------------------
+    # 2)  All *Storage classes – required for Pyg processed datasets       
+    #     (e.g. GlobalStorage, NodeStorage, EdgeStorage, …)                
+    # ------------------------------------------------------------------
+    storage_mod = importlib.import_module("torch_geometric.data.storage")
+    storage_types = {
+        getattr(storage_mod, name)
+        for name in dir(storage_mod)
+        if name.endswith("Storage") and isinstance(getattr(storage_mod, name), type)
+    }
+
+    if attr_types or storage_types:
+        add_safe_globals(attr_types | storage_types)  # type: ignore[arg-type]
 except Exception:  # pragma: no cover – best-effort patch, safe to ignore
     pass
 
 # -----------------------------------------------------------------------------
 # 1.  Utility – disable interactive OGB download prompt
 # -----------------------------------------------------------------------------
+
 
 def _disable_ogb_prompt():
     """Monkey-patch OGB’s download prompt so that it never requires stdin."""
