@@ -1,1 +1,24 @@
-# Please list the required python packages.
+[project]
+name = "flashgat-project"
+version = "0.1.0"
+description = "Refactored FlashGAT experimental framework"
+requires-python = ">=3.9"
+
+[project.dependencies]
+# core
+torch = "*"
+pyyaml = "*"
+
+# graph & dataset
+torch_geometric = "*"
+ogb = "*"
+
+# performance
+flash-attn = "*"
+
+# scientific stack
+numpy = "*"
+scipy = "*"
+
+[tool.setuptools.packages.find]
+where = ["src"]
