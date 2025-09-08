@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 """
 preprocess.py – dataset loading & feature pre-processing
 """
-from __future__ import annotations
 
 import os
 from pathlib import Path
@@ -15,25 +16,28 @@ import torch.nn.functional as F
 # -----------------------------------------------------------------------------
 # PyTorch ≥2.6 switched the default behaviour of `torch.load` to `weights_only=True`,
 # which breaks deserialisation of objects that are not simple tensors – such as
-# the `torch_geometric.data.data.DataEdgeAttr` instances stored inside OGB
-# processed dataset files.  We *explicitly* allow‐list the missing type so that
-# the default secure loader succeeds without having to fall back to the less
-# secure `weights_only=False` option.
+# the `torch_geometric.data.data.*Attr` instances stored inside OGB processed
+# dataset files.  We **auto-discover** every attribute class defined in
+# `torch_geometric.data.data` whose name ends with "Attr" and register them in
+# the global allow-list so that the secure loader can resolve those symbols.
 # -----------------------------------------------------------------------------
 try:
-    # The class lives exactly under the dotted path mentioned in PyTorch’s error
-    # message, therefore importing it guarantees the correct reference.
-    from torch_geometric.data.data import DataEdgeAttr  # type: ignore
+    import importlib
+
+    tg_data_mod = importlib.import_module("torch_geometric.data.data")
 
     # The helper is only available on recent PyTorch versions – we guard the
     # import so that older runtimes degrade gracefully.
     from torch.serialization import add_safe_globals  # type: ignore
 
-    # Register the type globally for the entire lifetime of the interpreter.
-    add_safe_globals({DataEdgeAttr})  # pylint: disable=no-member
-except Exception:  # pragma: no cover – the patch is best-effort
-    # If either PyG or the new `torch.serialization` API is unavailable we fall
-    # back silently – older PyTorch (<2.6) never required this workaround.
+    attr_types = {
+        getattr(tg_data_mod, name)
+        for name in dir(tg_data_mod)
+        if name.endswith("Attr") and isinstance(getattr(tg_data_mod, name), type)
+    }
+    if attr_types:
+        add_safe_globals(attr_types)  # pylint: disable=no-member
+except Exception:  # pragma: no cover – best-effort patch, safe to ignore
     pass
 
 # -----------------------------------------------------------------------------
@@ -41,14 +45,7 @@ except Exception:  # pragma: no cover – the patch is best-effort
 # -----------------------------------------------------------------------------
 
 def _disable_ogb_prompt():
-    """Monkey-patch OGB’s download prompt so that it never requires stdin.
-
-    In CI / non-interactive environments an unexpected `input()` call raises an
-    EOFError which terminates the run.  We instead auto-approve the download –
-    this mirrors a user typing “y”.  If the runtime wishes to block downloads
-    it can set the environment variable `DISABLE_DATA_DOWNLOAD=1`, in which
-    case we raise a *clear* error right away.
-    """
+    """Monkey-patch OGB’s download prompt so that it never requires stdin."""
 
     from ogb.utils import url as ogb_url  # type: ignore
 
@@ -59,7 +56,6 @@ def _disable_ogb_prompt():
                 "Please place the OGB dataset under the local 'data/' folder "
                 "before running the experiment."
             )
-        # Auto-approve download (acts like the user typed “y”).
         print(f"[OGB] Auto-approving download for {url}")
         return True
 
