@@ -1,0 +1,133 @@
+Using CPython 3.11.13
+Creating virtual environment at: .venv
+Resolved 70 packages in 978ms
+Downloading scikit-learn (9.3MiB)
+Downloading setuptools (1.1MiB)
+Downloading scipy (33.7MiB)
+Downloading nvidia-nccl-cu12 (307.4MiB)
+Downloading numpy (16.2MiB)
+Downloading triton (148.3MiB)
+Downloading nvidia-cufile-cu12 (1.1MiB)
+Downloading nvidia-curand-cu12 (60.7MiB)
+Downloading torch (846.9MiB)
+Downloading networkx (1.9MiB)
+Downloading nvidia-cufft-cu12 (184.2MiB)
+Downloading nvidia-cublas-cu12 (566.8MiB)
+Downloading nvidia-cudnn-cu12 (674.0MiB)
+Downloading aiohttp (1.7MiB)
+Downloading nvidia-nvjitlink-cu12 (37.4MiB)
+Downloading nvidia-cuda-cupti-cu12 (9.8MiB)
+Downloading nvidia-cuda-nvrtc-cu12 (84.0MiB)
+Downloading pandas (11.8MiB)
+Downloading nvidia-cusparse-cu12 (274.9MiB)
+Downloading torch-geometric (1.1MiB)
+Downloading sympy (6.0MiB)
+Downloading nvidia-cusparselt-cu12 (273.9MiB)
+Downloading nvidia-cusolver-cu12 (255.1MiB)
+   Building flash-attn==2.8.3
+ Downloading nvidia-cufile-cu12
+ Downloading aiohttp
+ Downloading setuptools
+ Downloading networkx
+ Downloading torch-geometric
+  × Failed to build `flash-attn==2.8.3`
+  ├─▶ The build backend returned an error
+  ╰─▶ Call to `setuptools.build_meta:__legacy__.build_wheel` failed (exit
+      status: 1)
+
+      [stderr]
+      Traceback (most recent call last):
+        File "<string>", line 14, in <module>
+        File
+      "/home/toma/.cache/uv/builds-v0/.tmpcVxh2x/lib/python3.11/site-packages/setuptools/build_meta.py",
+      line 331, in get_requires_for_build_wheel
+          return self._get_build_requires(config_settings, requirements=[])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        File
+      "/home/toma/.cache/uv/builds-v0/.tmpcVxh2x/lib/python3.11/site-packages/setuptools/build_meta.py",
+      line 301, in _get_build_requires
+          self.run_setup()
+        File
+      "/home/toma/.cache/uv/builds-v0/.tmpcVxh2x/lib/python3.11/site-packages/setuptools/build_meta.py",
+      line 512, in run_setup
+          super().run_setup(setup_script=setup_script)
+        File
+      "/home/toma/.cache/uv/builds-v0/.tmpcVxh2x/lib/python3.11/site-packages/setuptools/build_meta.py",
+      line 317, in run_setup
+          exec(code, locals())
+        File "<string>", line 22, in <module>
+      ModuleNotFoundError: No module named 'torch'
+
+      hint: This error likely indicates that `flash-attn@2.8.3` depends
+      on `torch`, but doesn't declare it as a build dependency. If
+      `flash-attn` is a first-party package, consider adding `torch`
+      to its `build-system.requires`. Otherwise, either add it to your
+      `pyproject.toml` under:
+
+      [tool.uv.extra-build-dependencies]
+      flash-attn = ["torch"]
+
+      or `uv pip install torch` into the environment and re-run with
+      `--no-build-isolation`.
+  help: `flash-attn` (v2.8.3) was included because `flashgat-project` (v0.1.0)
+        depends on `flash-attn`
+   Building flash-attn==2.8.3
+Downloading nvidia-cusolver-cu12 (255.1MiB)
+Downloading nvidia-cudnn-cu12 (674.0MiB)
+Downloading nvidia-cublas-cu12 (566.8MiB)
+Downloading triton (148.3MiB)
+Downloading nvidia-curand-cu12 (60.7MiB)
+Downloading nvidia-nccl-cu12 (307.4MiB)
+Downloading scikit-learn (9.3MiB)
+Downloading nvidia-cuda-nvrtc-cu12 (84.0MiB)
+Downloading scipy (33.7MiB)
+Downloading nvidia-nvjitlink-cu12 (37.4MiB)
+Downloading nvidia-cusparselt-cu12 (273.9MiB)
+Downloading nvidia-cusparse-cu12 (274.9MiB)
+Downloading nvidia-cuda-cupti-cu12 (9.8MiB)
+Downloading numpy (16.2MiB)
+Downloading pandas (11.8MiB)
+Downloading sympy (6.0MiB)
+Downloading torch (846.9MiB)
+Downloading nvidia-cufft-cu12 (184.2MiB)
+  × Failed to build `flash-attn==2.8.3`
+  ├─▶ The build backend returned an error
+  ╰─▶ Call to `setuptools.build_meta:__legacy__.build_wheel` failed (exit
+      status: 1)
+
+      [stderr]
+      Traceback (most recent call last):
+        File "<string>", line 14, in <module>
+        File
+      "/home/toma/.cache/uv/builds-v0/.tmpmfIYoK/lib/python3.11/site-packages/setuptools/build_meta.py",
+      line 331, in get_requires_for_build_wheel
+          return self._get_build_requires(config_settings, requirements=[])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        File
+      "/home/toma/.cache/uv/builds-v0/.tmpmfIYoK/lib/python3.11/site-packages/setuptools/build_meta.py",
+      line 301, in _get_build_requires
+          self.run_setup()
+        File
+      "/home/toma/.cache/uv/builds-v0/.tmpmfIYoK/lib/python3.11/site-packages/setuptools/build_meta.py",
+      line 512, in run_setup
+          super().run_setup(setup_script=setup_script)
+        File
+      "/home/toma/.cache/uv/builds-v0/.tmpmfIYoK/lib/python3.11/site-packages/setuptools/build_meta.py",
+      line 317, in run_setup
+          exec(code, locals())
+        File "<string>", line 22, in <module>
+      ModuleNotFoundError: No module named 'torch'
+
+      hint: This error likely indicates that `flash-attn@2.8.3` depends
+      on `torch`, but doesn't declare it as a build dependency. If
+      `flash-attn` is a first-party package, consider adding `torch`
+      to its `build-system.requires`. Otherwise, either add it to your
+      `pyproject.toml` under:
+
+      [tool.uv.extra-build-dependencies]
+      flash-attn = ["torch"]
+
+      or `uv pip install torch` into the environment and re-run with
+      `--no-build-isolation`.
+  help: `flash-attn` (v2.8.3) was included because `flashgat-project` (v0.1.0)
+        depends on `flash-attn`
