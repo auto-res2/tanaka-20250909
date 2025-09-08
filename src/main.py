@@ -37,17 +37,12 @@ with open(CFG_PATH, "r", encoding="utf-8") as fp:
 def _prepare_dirs():
     """Ensure the mandatory research directory structure exists."""
 
-    # The grading rubric mandates that all artifacts for *this* iteration are
-    # stored under `.research/iteration2`.  We therefore hard-code the path
-    # here to avoid accidental writes to any legacy iterations.
-    img_dir = Path(".research/iteration2/images")
+    # All artefacts for *this* iteration must live under `.research/iteration3`.
+    img_dir = Path(".research/iteration3/images")
     img_dir.mkdir(parents=True, exist_ok=True)
 
-    json_dir = Path(".research/iteration2")
+    json_dir = Path(".research/iteration3")
     json_dir.mkdir(parents=True, exist_ok=True)
-
-    # NOTE: should additional asset sub-folders be required in future (e.g.
-    # logs, checkpoints), they must follow the same iteration2 root.
 
 
 # -----------------------------------------------------------------------------
@@ -120,14 +115,14 @@ def run():
     }
 
     ts = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
-    out_path = Path(".research/iteration2") / f"flashgat_{dataset_name}_{ts}.json"
+    out_path = Path(".research/iteration3") / f"flashgat_{dataset_name}_{ts}.json"
     with open(out_path, "w", encoding="utf-8") as fp:
         json.dump(result, fp, indent=2)
 
     # mandatory STDOUT for verification
     print("\n=== Implementation Verification ===")
     print("Passed" if verify_implementation() else "Failed")
-    print("\n=== Results (also saved to .research/iteration2) ===")
+    print("\n=== Results (also saved to .research/iteration3) ===")
     print(json.dumps(result, indent=2))
 
 

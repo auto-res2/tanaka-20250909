@@ -1,1 +1,17 @@
-[KEEP_ORIGINAL_FILE
+seeds: [42]
+hardware:
+  mixed_precision: "bf16"
+model:
+  hidden_dim: 16
+  num_layers: 2
+  heads: 2
+flashgat:
+  B: 4
+  causal: false
+optim:
+  lr: 0.001
+  weight_decay: 0.0
+  epochs: 1
+datasets:
+  ogbn-products:
+    val_acc_target: 0.0

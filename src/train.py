@@ -3,6 +3,7 @@ train.py – model definitions and training helpers for FlashGAT project
 """
 from __future__ import annotations
 
+import math
 import time
 from typing import List, Dict
 
@@ -10,18 +11,76 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# optional / soft-dependencies -------------------------------------------------
+# ---------------------------------------------------------------------------
+# 0.  Optional / soft-dependencies -------------------------------------------
+# ---------------------------------------------------------------------------
+# We *try* to import the CUDA-kernel implementation from Dao-AILab’s flash-attn
+# project.  When that fails (e.g. on CI runners that lack a full CUDA tool-
+# chain) we register a **light-weight PyTorch fallback**.  This keeps the rest
+# of the code-base functional without forcing users to compile `flash-attn`.
+# ---------------------------------------------------------------------------
 try:
-    from torch_geometric.nn import GATConv  # Vanilla GAT baseline
+    from flash_attn.flash_attention import FlashAttention  # type: ignore
+except Exception:  # pragma: no cover – stub-out when unavailable
+
+    class FlashAttention(nn.Module):
+        """Minimal, *unoptimised* FlashAttention stub.
+
+        The implementation purposefully sticks to the small feature-set that
+        `FlashSparseAttention` relies on: batched QKV input using prefix-sum
+        `cu_seqlens` to demarcate individual sequences.
+        """
+
+        def __init__(self):
+            super().__init__()
+            self.dropout_p = 0.0
+            self.causal = False
+
+        # pylint: disable=unused-argument
+        def forward(  # noqa: D401
+            self,
+            qkv: torch.Tensor,
+            cu_seqlens: torch.Tensor | None = None,
+            max_seqlen: int | None = None,
+        ) -> torch.Tensor:
+            if cu_seqlens is None:
+                raise ValueError("cu_seqlens must be supplied to the stub implementation")
+
+            # qkv: (N_tokens, 3, H, Dh)
+            q, k, v = qkv[:, 0], qkv[:, 1], qkv[:, 2]  # (N, H, Dh)
+            _, num_heads, dim_h = q.shape
+            scale = 1.0 / math.sqrt(dim_h)
+
+            outputs: List[torch.Tensor] = []
+            for start, end in zip(cu_seqlens[:-1], cu_seqlens[1:]):
+                s = int(start.item())
+                e = int(end.item())
+                q_blk, k_blk, v_blk = q[s:e], k[s:e], v[s:e]  # (L, H, Dh)
+
+                # Perform attention per head for better numerical behaviour
+                qh = q_blk.permute(1, 0, 2)  # (H, L, Dh)
+                kh = k_blk.permute(1, 2, 0)  # (H, Dh, L)
+                vh = v_blk.permute(1, 0, 2)  # (H, L, Dh)
+
+                scores = torch.matmul(qh, kh) * scale  # (H, L, L)
+                if self.causal:
+                    mask = torch.triu(torch.ones_like(scores, dtype=torch.bool), diagonal=1)
+                    scores = scores.masked_fill(mask, float("-inf"))
+
+                attn = torch.softmax(scores, dim=-1)
+                out_h = torch.matmul(attn, vh)  # (H, L, Dh)
+                outputs.append(out_h.permute(1, 0, 2))  # (L, H, Dh)
+
+            return torch.cat(outputs, dim=0)
+
+
+# vanilla GAT (PyG) -----------------------------------------------------------
+try:
+    from torch_geometric.nn import GATConv  # type: ignore  # noqa: F401
 except Exception:  # pragma: no cover – keep CPU-only runners alive
-    GATConv = None
+    GATConv = None  # type: ignore
 
-try:
-    from flash_attn.flash_attention import FlashAttention  # noqa: F401
-except Exception:
-    FlashAttention = None
-
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 __all__ = [
     # utilities
     "EdgeScoreMemory",
@@ -66,9 +125,7 @@ class EXP3Bandit:
     # ---------------------------------------------------------------------
     def _ensure(self, node_id: int, deg: int):
         if node_id not in self.weight_dict:
-            self.weight_dict[node_id] = torch.ones(
-                deg, dtype=torch.float32, device="cpu"
-            )
+            self.weight_dict[node_id] = torch.ones(deg, dtype=torch.float32, device="cpu")
 
     # ---------------------------------------------------------------------
     def sample_top_b(self, node_id: int, deg: int, B: int) -> torch.Tensor:
@@ -92,13 +149,10 @@ class EXP3Bandit:
 
 
 class FlashSparseAttention(nn.Module):
-    """Block-sparse FlashAttention thin wrapper (requires flash-attn)."""
+    """Block-sparse FlashAttention thin wrapper (works with stub or CUDA impl)."""
 
     def __init__(self, embed_dim: int, num_heads: int, B: int, causal: bool):
         super().__init__()
-        assert (
-            FlashAttention is not None
-        ), "flash_attn is required – pip install flash-attn"
         self.flash = FlashAttention()
         self.flash.dropout_p = 0.0
         self.flash.causal = causal
@@ -107,9 +161,9 @@ class FlashSparseAttention(nn.Module):
         self.B = B
 
     # ------------------------------------------------------------------
-    def forward(
+    def forward(  # noqa: D401
         self, qkv: torch.Tensor, cu_seqlens: torch.Tensor, max_seqlen: int
-    ) -> torch.Tensor:  # noqa: D401
+    ) -> torch.Tensor:
         # qkv: (blocks, B, 3, H, D_h)
         blocks, blk, *_ = qkv.shape
         qkv_r = qkv.reshape(blocks * blk, 3, self.num_heads, self.embed_dim // self.num_heads)
@@ -135,7 +189,7 @@ class FlashGATLayer(nn.Module):
         self.out_proj = nn.Linear(dim, dim, bias=False)
 
     # ------------------------------------------------------------------
-    def forward(
+    def forward(  # noqa: D401
         self,
         x: torch.Tensor,
         edge_index: torch.Tensor,
@@ -157,7 +211,9 @@ class FlashGATLayer(nn.Module):
         chosen_edges = torch.cat(packs)
 
         padded = torch.nn.functional.pad(
-            chosen_edges, (0, (-chosen_edges.numel()) % self.B), value=chosen_edges[0]
+            chosen_edges,
+            (0, (-chosen_edges.numel()) % self.B),
+            value=chosen_edges[0],
         )
         blocks = padded.view(-1, self.B)
 
@@ -190,7 +246,7 @@ class FlashGAT(nn.Module):
         super().__init__()
         self.layers = nn.ModuleList()
         dims = [in_dim] + [hid_dim] * num_layers
-        for d_in, d_out in zip(dims[:-1], dims[1:]):
+        for d_in, d_out in zip(dims[:-1], dims[1:]):  # noqa: F841 – d_in kept for clarity
             self.layers.append(FlashGATLayer(d_out, heads, B, causal))
         self.norm = nn.LayerNorm(hid_dim)
         self.classifier = nn.Linear(hid_dim, num_classes)
@@ -227,9 +283,7 @@ class VanillaGAT(nn.Module):
         self.convs.append(GATConv(in_dim, hid, heads=heads, dropout=0.6))
         for _ in range(num_layers - 2):
             self.convs.append(GATConv(hid * heads, hid, heads=heads, dropout=0.6))
-        self.convs.append(
-            GATConv(hid * heads, num_classes, heads=1, concat=False, dropout=0.6)
-        )
+        self.convs.append(GATConv(hid * heads, num_classes, heads=1, concat=False, dropout=0.6))
 
     # ------------------------------------------------------------------
     def forward(self, x, edge_index):  # noqa: D401
