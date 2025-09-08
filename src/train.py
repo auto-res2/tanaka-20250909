@@ -200,6 +200,7 @@ class FlashGATLayer(nn.Module):
         q = self.q_proj(x)
         k = self.k_proj(x)
         preview = (q[dst] * k[src]).sum(-1).sigmoid()  # importance [E]
+        # update importance memory
         score_mem.update(torch.arange(src.size(0), device=x.device), preview, decay=0.9)
 
         # Top-B neighbour sampling
@@ -210,6 +211,9 @@ class FlashGATLayer(nn.Module):
             packs.append(idx_e[local_top])
         chosen_edges = torch.cat(packs)
 
+        # ------------------------------------------------------------------
+        # prepare block-wise structures for FlashAttention
+        # ------------------------------------------------------------------
         padded = torch.nn.functional.pad(
             chosen_edges,
             (0, (-chosen_edges.numel()) % self.B),
@@ -244,10 +248,10 @@ class FlashGAT(nn.Module):
         num_classes: int,
     ):
         super().__init__()
-        self.layers = nn.ModuleList()
-        dims = [in_dim] + [hid_dim] * num_layers
-        for d_in, d_out in zip(dims[:-1], dims[1:]):  # noqa: F841 – d_in kept for clarity
-            self.layers.append(FlashGATLayer(d_out, heads, B, causal))
+        # Optional input projection when feature dim differs from hidden dim
+        self.input_proj = nn.Linear(in_dim, hid_dim, bias=False) if in_dim != hid_dim else None
+
+        self.layers = nn.ModuleList([FlashGATLayer(hid_dim, heads, B, causal) for _ in range(num_layers)])
         self.norm = nn.LayerNorm(hid_dim)
         self.classifier = nn.Linear(hid_dim, num_classes)
         self.score_mem: EdgeScoreMemory | None = None
@@ -260,6 +264,8 @@ class FlashGAT(nn.Module):
     # ------------------------------------------------------------------
     def forward(self, x: torch.Tensor, edge_index: torch.Tensor):  # noqa: D401
         assert self.score_mem is not None, "set_edge_memory() must be called first"
+        if self.input_proj is not None:
+            x = self.input_proj(x)
         for layer in self.layers:
             x = x + layer(x, edge_index, self.score_mem, self.bandit)
             x = F.elu(x)

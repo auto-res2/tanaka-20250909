@@ -37,11 +37,11 @@ with open(CFG_PATH, "r", encoding="utf-8") as fp:
 def _prepare_dirs():
     """Ensure the mandatory research directory structure exists."""
 
-    # All artefacts for *this* iteration must live under `.research/iteration3`.
-    img_dir = Path(".research/iteration3/images")
+    # All artefacts for *this* iteration must live under `.research/iteration4`.
+    img_dir = Path(".research/iteration4/images")
     img_dir.mkdir(parents=True, exist_ok=True)
 
-    json_dir = Path(".research/iteration3")
+    json_dir = Path(".research/iteration4")
     json_dir.mkdir(parents=True, exist_ok=True)
 
 
@@ -93,7 +93,7 @@ def run():
     best_val = 0.0
     for epoch in range(CONFIG["optim"]["epochs"]):
         loss = train_one_epoch(model, data, optim, scaler, device, mp)
-        val_acc = evaluate(model, data, data.val_mask, device)
+        val_acc = evaluate(model, data, data.valid_mask, device)
         best_val = max(best_val, val_acc)
         print(f"Epoch {epoch:02d} | loss={loss:.4f} | val={val_acc*100:.2f}%")
         if val_acc >= CONFIG["datasets"][dataset_name]["val_acc_target"]:
@@ -115,14 +115,14 @@ def run():
     }
 
     ts = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
-    out_path = Path(".research/iteration3") / f"flashgat_{dataset_name}_{ts}.json"
+    out_path = Path(".research/iteration4") / f"flashgat_{dataset_name}_{ts}.json"
     with open(out_path, "w", encoding="utf-8") as fp:
         json.dump(result, fp, indent=2)
 
     # mandatory STDOUT for verification
     print("\n=== Implementation Verification ===")
     print("Passed" if verify_implementation() else "Failed")
-    print("\n=== Results (also saved to .research/iteration3) ===")
+    print("\n=== Results (also saved to .research/iteration4) ===")
     print(json.dumps(result, indent=2))
 
 
