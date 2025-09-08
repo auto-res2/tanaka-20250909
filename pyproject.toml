@@ -4,21 +4,29 @@ version = "0.1.0"
 description = "Refactored FlashGAT experimental framework"
 requires-python = ">=3.9"
 
-[project.dependencies]
-# core
-torch = "*"
-pyyaml = "*"
+# ---------------------------------------------------------------------------
+# PEP-621: project.dependencies must be an *array*, *not* a table.  The
+# previous format triggered a TOML parsing error which prevented the build
+# backend from initialising.  We convert the mis-specified table into the
+# correct list syntax below.
+# ---------------------------------------------------------------------------
 
-# graph & dataset
-torch_geometric = "*"
-ogb = "*"
+dependencies = [
+  # core
+  "torch",
+  "pyyaml",
 
-# performance
-flash-attn = "*"
+  # graph & dataset handling
+  "torch_geometric",
+  "ogb",
 
-# scientific stack
-numpy = "*"
-scipy = "*"
+  # performance
+  "flash-attn",
+
+  # scientific stack
+  "numpy",
+  "scipy",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
