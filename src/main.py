@@ -34,15 +34,15 @@ with open(CFG_PATH, "r", encoding="utf-8") as fp:
 # -----------------------------------------------------------------------------
 
 
+RESEARCH_ROOT = Path(".research/iteration8")
+IMG_DIR = RESEARCH_ROOT / "images"
+JSON_DIR = RESEARCH_ROOT
+
 def _prepare_dirs():
     """Ensure the mandatory research directory structure exists."""
 
-    # All artefacts for *this* iteration must live under `.research/iteration7`.
-    img_dir = Path(".research/iteration7/images")
-    img_dir.mkdir(parents=True, exist_ok=True)
-
-    json_dir = Path(".research/iteration7")
-    json_dir.mkdir(parents=True, exist_ok=True)
+    IMG_DIR.mkdir(parents=True, exist_ok=True)
+    JSON_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # -----------------------------------------------------------------------------
@@ -56,7 +56,7 @@ def run():
     seed = CONFIG["seeds"][0]
     torch.manual_seed(seed)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    mp = CONFIG["hardware"].get("mixed_precision", "bf16") == "bf16"
+    mp = torch.cuda.is_available() and CONFIG["hardware"].get("mixed_precision", "bf16") == "bf16"
 
     # ------------------------------------------------------------------
     # Dataset
@@ -84,7 +84,7 @@ def run():
         lr=CONFIG["optim"]["lr"],
         weight_decay=CONFIG["optim"]["weight_decay"],
     )
-    scaler = torch.cuda.amp.GradScaler()
+    scaler = torch.cuda.amp.GradScaler(enabled=mp)
 
     # ------------------------------------------------------------------
     # Training loop
@@ -115,14 +115,14 @@ def run():
     }
 
     ts = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
-    out_path = Path(".research/iteration7") / f"flashgat_{dataset_name}_{ts}.json"
+    out_path = JSON_DIR / f"flashgat_{dataset_name}_{ts}.json"
     with open(out_path, "w", encoding="utf-8") as fp:
         json.dump(result, fp, indent=2)
 
     # mandatory STDOUT for verification
     print("\n=== Implementation Verification ===")
     print("Passed" if verify_implementation() else "Failed")
-    print("\n=== Results (also saved to .research/iteration7) ===")
+    print("\n=== Results (also saved to .research/iteration8) ===")
     print(json.dumps(result, indent=2))
 
 

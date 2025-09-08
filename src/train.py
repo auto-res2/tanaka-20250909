@@ -124,7 +124,10 @@ class EXP3Bandit:
 
     # ---------------------------------------------------------------------
     def _ensure(self, node_id: int, deg: int):
+        """Create (or resize) the weight vector for the given node."""
         if node_id not in self.weight_dict:
+            self.weight_dict[node_id] = torch.ones(deg, dtype=torch.float32, device="cpu")
+        elif self.weight_dict[node_id].numel() != deg:  # handle degree changes gracefully
             self.weight_dict[node_id] = torch.ones(deg, dtype=torch.float32, device="cpu")
 
     # ---------------------------------------------------------------------
@@ -164,8 +167,9 @@ class FlashSparseAttention(nn.Module):
     def forward(  # noqa: D401
         self, qkv: torch.Tensor, cu_seqlens: torch.Tensor, max_seqlen: int
     ) -> torch.Tensor:
-        # qkv: (blocks, B, 3, H, D_h)
-        blocks, blk, *_ = qkv.shape
+        # qkv: (blocks, B, 3, D)
+        blocks, blk, _, _ = qkv.shape  # '_' captures D
+        # Reshape to (N_tokens, 3, H, Dh)
         qkv_r = qkv.reshape(blocks * blk, 3, self.num_heads, self.embed_dim // self.num_heads)
         out = self.flash(qkv_r, cu_seqlens=cu_seqlens, max_seqlen=max_seqlen)
         return out.view(blocks, blk, self.embed_dim)
@@ -199,6 +203,8 @@ class FlashGATLayer(nn.Module):
         src, dst = edge_index  # E
         q = self.q_proj(x)
         k = self.k_proj(x)
+        v = self.v_proj(x)
+
         preview = (q[dst] * k[src]).sum(-1).sigmoid()  # importance [E]
         # update importance memory
         score_mem.update(torch.arange(src.size(0), device=x.device), preview, decay=0.9)
@@ -206,26 +212,28 @@ class FlashGATLayer(nn.Module):
         # Top-B neighbour sampling
         packs: List[torch.Tensor] = []
         for n in torch.unique(dst):
-            idx_e = (dst == n).nonzero(as_tuple=False).flatten()
+            idx_e = (dst == n).nonzero(as_tuple=False).squeeze(-1)
             local_top = bandit.sample_top_b(int(n), idx_e.numel(), self.B)
             packs.append(idx_e[local_top])
+        if not packs:
+            # Fallback for graphs with isolated nodes (rare on OGB datasets)
+            return self.out_proj(torch.zeros_like(x))
         chosen_edges = torch.cat(packs)
 
         # ------------------------------------------------------------------
         # prepare block-wise structures for FlashAttention
         # ------------------------------------------------------------------
-        padded = torch.nn.functional.pad(
-            chosen_edges,
-            (0, (-chosen_edges.numel()) % self.B),
-            value=chosen_edges[0],
+        pad_len = (-chosen_edges.numel()) % self.B
+        padded = (
+            F.pad(chosen_edges, (0, pad_len), value=chosen_edges[0]) if pad_len else chosen_edges
         )
         blocks = padded.view(-1, self.B)
 
         qkv = torch.stack(
             [
-                q[dst[blocks]],
-                k[src[blocks]],
-                self.v_proj(x)[src[blocks]],
+                q[dst[blocks]],  # queries – shape (blocks, B, D)
+                k[src[blocks]],  # keys
+                v[src[blocks]],  # values
             ],
             dim=2,
         )  # (blocks, B, 3, D)
@@ -321,14 +329,32 @@ def get_baseline(name: str, **kw):
 # =============================================================================
 
 
-def train_one_epoch(model: nn.Module, data, optimizer, scaler, device, mp: bool):
-    """Single-epoch optimiser step with AMP support."""
+def train_one_epoch(model: nn.Module, data, optimizer, scaler, device, mp_flag: bool):
+    """Single-epoch optimiser step with (optional) AMP support.
+
+    The helper now gracefully falls back to a standard FP32 training step when
+    1) mixed-precision was disabled via the configuration file or
+    2) CUDA devices are not available (e.g. running on a CPU-only system).
+    """
+
     model.train()
     optimizer.zero_grad(set_to_none=True)
-    with torch.cuda.amp.autocast(enabled=mp):
+
+    use_amp = mp_flag and torch.cuda.is_available()
+
+    if use_amp:
+        # CUDA + AMP path --------------------------------------------------
+        with torch.cuda.amp.autocast(dtype=torch.bfloat16):
+            out = model(data.x.to(device), data.edge_index.to(device))
+            loss = F.cross_entropy(out[data.train_mask], data.y[data.train_mask].to(device))
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
+    else:
+        # Standard FP32 path ----------------------------------------------
         out = model(data.x.to(device), data.edge_index.to(device))
         loss = F.cross_entropy(out[data.train_mask], data.y[data.train_mask].to(device))
-    scaler.scale(loss).backward()
-    scaler.step(optimizer)
-    scaler.update()
-    return loss.item()
+        loss.backward()
+        optimizer.step()
+
+    return float(loss.item())
