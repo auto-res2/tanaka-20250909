@@ -37,11 +37,11 @@ with open(CFG_PATH, "r", encoding="utf-8") as fp:
 def _prepare_dirs():
     """Ensure the mandatory research directory structure exists."""
 
-    # All artefacts for *this* iteration must live under `.research/iteration4`.
-    img_dir = Path(".research/iteration4/images")
+    # All artefacts for *this* iteration must live under `.research/iteration5`.
+    img_dir = Path(".research/iteration5/images")
     img_dir.mkdir(parents=True, exist_ok=True)
 
-    json_dir = Path(".research/iteration4")
+    json_dir = Path(".research/iteration5")
     json_dir.mkdir(parents=True, exist_ok=True)
 
 
@@ -115,14 +115,14 @@ def run():
     }
 
     ts = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
-    out_path = Path(".research/iteration4") / f"flashgat_{dataset_name}_{ts}.json"
+    out_path = Path(".research/iteration5") / f"flashgat_{dataset_name}_{ts}.json"
     with open(out_path, "w", encoding="utf-8") as fp:
         json.dump(result, fp, indent=2)
 
     # mandatory STDOUT for verification
     print("\n=== Implementation Verification ===")
     print("Passed" if verify_implementation() else "Failed")
-    print("\n=== Results (also saved to .research/iteration4) ===")
+    print("\n=== Results (also saved to .research/iteration5) ===")
     print(json.dumps(result, indent=2))
 
 

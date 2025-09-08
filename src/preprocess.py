@@ -10,6 +10,35 @@ from typing import Tuple
 import torch
 import torch.nn.functional as F
 
+# -----------------------------------------------------------------------------
+# 0.  Torch serialization compatibility patch
+# -----------------------------------------------------------------------------
+# PyTorch ≥2.6 switched the default behaviour of `torch.load` to `weights_only=True`,
+# which breaks deserialisation of objects that are not simple tensors – such as
+# the `torch_geometric.data.data.DataEdgeAttr` instances stored inside OGB
+# processed dataset files.  We *explicitly* allow‐list the missing type so that
+# the default secure loader succeeds without having to fall back to the less
+# secure `weights_only=False` option.
+# -----------------------------------------------------------------------------
+try:
+    # The class lives exactly under the dotted path mentioned in PyTorch’s error
+    # message, therefore importing it guarantees the correct reference.
+    from torch_geometric.data.data import DataEdgeAttr  # type: ignore
+
+    # The helper is only available on recent PyTorch versions – we guard the
+    # import so that older runtimes degrade gracefully.
+    from torch.serialization import add_safe_globals  # type: ignore
+
+    # Register the type globally for the entire lifetime of the interpreter.
+    add_safe_globals({DataEdgeAttr})  # pylint: disable=no-member
+except Exception:  # pragma: no cover – the patch is best-effort
+    # If either PyG or the new `torch.serialization` API is unavailable we fall
+    # back silently – older PyTorch (<2.6) never required this workaround.
+    pass
+
+# -----------------------------------------------------------------------------
+# 1.  Utility – disable interactive OGB download prompt
+# -----------------------------------------------------------------------------
 
 def _disable_ogb_prompt():
     """Monkey-patch OGB’s download prompt so that it never requires stdin.
@@ -39,6 +68,10 @@ def _disable_ogb_prompt():
 
 _disable_ogb_prompt()
 
+
+# -----------------------------------------------------------------------------
+# 2.  Public API
+# -----------------------------------------------------------------------------
 
 def load_dataset(name: str = "ogbn-products"):
     """Download (if needed) & return PyG graph with train/val/test masks."""
