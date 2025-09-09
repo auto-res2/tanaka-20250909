@@ -11,11 +11,14 @@ license = {text = "MIT"}
 authors = [{name = "Researcher", email = "research@example.com"}]
 readme = "README.md"
 keywords = ["time-series", "transformer", "ML", "research"]
-
-[project.dependencies]
-numpy = "*"
-pandas = "*"
-pyyaml = "*"
-torch = "*"
-matplotlib = "*"
-requests = "*"
+# -----------------------------------------------------------------------------
+#  Dependencies – use PEP 621 compliant array instead of a sub-table
+# -----------------------------------------------------------------------------
+dependencies = [
+    "numpy",
+    "pandas",
+    "pyyaml",
+    "torch",
+    "matplotlib",
+    "requests",
+]

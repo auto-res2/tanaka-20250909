@@ -29,7 +29,8 @@ def load_cfg(path: os.PathLike | None = None) -> Dict[str, Any]:
 # -----------------------------------------------------------------------------
 #  Experiment runner
 # -----------------------------------------------------------------------------
-RESEARCH_DIR = pathlib.Path(".research") / "iteration1"
+# Use mandatory research directory as required by the problem statement
+RESEARCH_DIR = pathlib.Path(".research") / "iteration2"
 RESEARCH_DIR.mkdir(parents=True, exist_ok=True)
 (RESEARCH_DIR / "images").mkdir(exist_ok=True)
 
@@ -55,6 +56,7 @@ def run_single_experiment(exp_name: str, exp_cfg: Dict[str, Any]) -> Dict[str, f
     out_json = RESEARCH_DIR / f"{exp_name}_results.json"
     with out_json.open("w") as fp:
         json.dump(results, fp, indent=2)
+    # Print JSON contents to stdout for verification
     print(json.dumps(results, indent=2))
 
     return results
