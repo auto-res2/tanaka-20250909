@@ -47,7 +47,7 @@ def _run_exp1():
     # ------------------------------------------------------------------
     #  FIGURE + JSON OUTPUT (as mandated by instructions)
     # ------------------------------------------------------------------
-    fig_dir = Path(".research/iteration4/images")
+    fig_dir = Path(".research/iteration5/images")
     fig_dir.mkdir(parents=True, exist_ok=True)
     figure_path = fig_dir / "exp1_peak_memory.pdf"
     lineplot(resolutions, [peak_dict[m] for m in methods], methods, "Peak GPU Memory", str(figure_path))
