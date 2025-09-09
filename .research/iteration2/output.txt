@@ -1,0 +1,7 @@
+=== uv sync start Tue Sep  9 03:24:40 AM UTC 2025 ===
+=== uv install end Tue Sep  9 03:25:40 AM UTC 2025 ===
+=== experiment start Tue Sep  9 03:25:40 AM UTC 2025 ===
+
+===== exp1_etth1 =====
+[Data] downloading ETTh1…
+[Trainer] Start training…
