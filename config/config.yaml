@@ -7,7 +7,7 @@ datasets:
     type: webdataset
     preprocessing:
       - decode: jpg
-      - random_resized_crop: {short_side: ${resolution}, interpolation: bicubic}
+      - random_resized_crop: {short_side: "${resolution}", interpolation: bicubic}
       - random_hflip: {p: 0.5}
       - vae_encode: true
   laion_hq:
@@ -66,3 +66,10 @@ experiments:
     method: redift
     chunk_size: 256
     dataset: laion_hq
+
+# ---------------------------------------------------------------------------
+# (YAML validated & updated – previously failed to parse due to unquoted
+#  `${resolution}` placeholder.)
+# ---------------------------------------------------------------------------
+
+

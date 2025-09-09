@@ -222,6 +222,24 @@ def enable_redif(model: torch.nn.Module, *, chunk: int = 128, kv_rank: int = 16,
 
 
 # ============================================================
+#  CHECKPOINT  WRAPPER (fix for broken .apply call earlier)
+# ============================================================
+
+class _CheckpointWrapper(torch.nn.Module):
+    """Module wrapper that applies torch.utils.checkpoint.checkpoint to the
+    wrapped module's forward pass.  This is a drop-in replacement that keeps
+    the original interface intact while trading compute for memory.
+    """
+
+    def __init__(self, module: torch.nn.Module):
+        super().__init__()
+        self.module = module
+
+    def forward(self, *args, **kwargs):  # type: ignore[override]
+        return torch.utils.checkpoint.checkpoint(self.module, *args, **kwargs)
+
+
+# ============================================================
 #  TRAINING LOOP
 # ============================================================
 
@@ -238,7 +256,7 @@ def train_one(cfg: Dict[str, Any]):
         opt = ShrinkAdamW(model.parameters(), lr=1e-4)
     else:
         if cfg["method"] == "checkpoint":
-            model.apply(torch.utils.checkpoint.checkpoint)  # type: ignore[arg-type]
+            model = _CheckpointWrapper(model)
         opt = torch.optim.AdamW(model.parameters(), lr=1e-4, betas=(0.9, 0.95), weight_decay=1e-2)
 
     loader = get_loader("imagenet", "train", cfg["resolution"], cfg["batch"], num_workers=2)
