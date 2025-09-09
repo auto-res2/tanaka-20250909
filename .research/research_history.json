@@ -597,6 +597,68 @@
       }
     }
   ],
+  "reference_research_study_list": [
+    {
+      "title": "Learning dexterous in-hand manipulation"
+    },
+    {
+      "title": "Accelerating neural architecture search using performance prediction"
+    },
+    {
+      "title": "Large scale gan training for high ﬁdelity natural image synthesis"
+    },
+    {
+      "title": "Openai gym"
+    },
+    {
+      "title": "Ai-gas: Ai-generating algorithms, an alternate paradigm for producing general artiﬁcial intelligence"
+    },
+    {
+      "title": "Improved regularization of convolutional neural networks with cutout"
+    },
+    {
+      "title": "Adversarial reprogramming of neural networks"
+    },
+    {
+      "title": "Efﬁcient multi-objective neural architecture search via lamarckian evolution"
+    },
+    {
+      "title": "Learning to teach"
+    },
+    {
+      "title": "Meta-learning and universality: Deep representations and gradient descent can approximate any learning algorithm"
+    },
+    {
+      "title": "Model-agnostic meta-learning for fast adaptation of deep networks"
+    },
+    {
+      "title": "Review papers: The statistical basis of meta-analysis"
+    },
+    {
+      "title": "Generative adversarial nets"
+    },
+    {
+      "title": "Automated curriculum learning for neural networks"
+    },
+    {
+      "title": "Algorithm 799: revolve: an implementation of checkpointing for the reverse or adjoint mode of computational differentiation"
+    },
+    {
+      "title": "Delving deep into rectiﬁers: Surpassing human-level performance on imagenet classiﬁcation"
+    },
+    {
+      "title": "Distilling the knowledge in a neural network"
+    },
+    {
+      "title": "Evolved policy gradients"
+    },
+    {
+      "title": "Batch normalization: Accelerating deep network training by reducing internal covariate shift"
+    },
+    {
+      "title": "Adam: A method for stochastic optimization"
+    }
+  ],
   "new_method": {
     "method": "Open Problems: Current GAT accelerators tackle EITHER the statistical side (variance-reduced neighbor sampling, balanced initialization) OR the systems side (activation/memory compression, FlashAttention for dense sequences). None of them jointly solve the core bottleneck that dominates real-world, billion-edge graphs: 1) extremely irregular, high-degree neighborhoods that lead to quadratic attention cost per node, 2) very low GPU arithmetic intensity because edge lists are processed with fine-grained scatter/gather, 3) costly sampling that still materialises whole neighborhoods to decide what to keep. A unified method that simultaneously (a) keeps only the truly influential neighbors, (b) feeds them to an IO-aware, highly-tiled attention kernel, and (c) provides an unbiased gradient estimator is still missing. Solving this would turn GATs from small-graph research models into practical large-scale learners on web-scale graphs.\nMethods: We propose FlashGAT, an end-to-end training pipeline that combines adaptive neighbor sparsification with GPU-resident, block-sparse FlashAttention.\n1. Edge importance preview.  For each high-degree node we maintain a light, 8-bit rolling score of every incident edge, updated with a single inner-product between the latest query/key projections (no softmax) and decayed over time.  This happens during the forward pass with negligible extra FLOPs.\n2. Bandit-guided Top-B filter.  Before the next epoch, an EXP3 light-weight bandit treats edges of a node as arms and allocates the budget B (e.g. 32) per node.  A control-variate correction term (as in EVA) is stored to keep gradients unbiased when edges are dropped.\n3. Block re-packing.  Selected neighbors are reordered into fixed 32-edge blocks.  A CUDA pre-kernel builds three dense tensors Q,K,V of shape (total_blocks, 32, d) so that all arithmetic becomes contiguous.\n4. FlashSparse kernel.  We adapt the FlashAttention tiling scheme: within a block we run exact attention; across blocks we reuse the control-variate approximation (no computation).  The kernel runs in half precision, stores only softmax-normalisers, and supports causal masking = 0 (undirected) or 1 (directed) per block.\n5. Balanced-Orthogonal init + GACT activation quantisation are plugged in by default.\nThe pipeline differs from prior work because (i) sampling is edge-adaptive and differentiable via control variates, not random walks; (ii) no neighborhood is materialised on host memory; (iii) attention math is executed by a single fused GPU kernel with <2× DRAM traffic of dense FlashAttention despite irregular sparsity.\nExperimental Setup: Datasets: OGBN-products (2.4M nodes, 61M edges), OGBN-papers100M, Reddit, Flickr.\nModels: 3-layer and 6-layer GAT with 128-dim heads, 8 heads per layer.  Baselines: Vanilla GAT (PyG implementation), GraphSAINT-GAT, Bandit Sampler (GNN-BS.M), FlashAttention-style dense packing without sparsification, and ClusterGCN.\nMetrics: (a) wall-clock training time to reach a fixed validation accuracy, (b) peak GPU memory, (c) test accuracy, (d) GPU utilisation (%), (e) variance of gradient estimator.\nProtocol: Train each model for 20 epochs on 8×A100 GPUs with identical seeds.  Run ablations for B={16,32,64}, with/without control variate, and with traditional random uniform sampling.  Robustness: stress tests on skewed synthetic graphs (power-law exponent 1.8) and noisy feature perturbations (+5% Gaussian noise).\nExpected Result: FlashGAT matches or exceeds baseline accuracy (within ±0.3% on OGBN-products, ±0.1% on Reddit) while:\n• 3.2× faster per epoch than GraphSAINT-GAT and 6-8× faster than vanilla GAT.\n• 2.7× lower peak memory than dense FlashAttention and 1.9× lower than GraphSAINT.\n• GPU arithmetic utilisation rises from 18% (scatter/gather baseline) to 63%.\n• Gradient variance is 45% lower than random Top-B and on par with full-neighbor training thanks to control-variate correction.\n• Robustness tests show <0.5% accuracy drop under noise; speed advantage remains >2.5× on synthetic skewed graphs.\nExpected Conclusion: The study demonstrates that merging importance-aware sparsification with IO-aware attention kernels delivers a new Pareto frontier for GAT training—retaining statistical efficiency while fully exploiting modern GPUs.  Academically, it bridges the gap between algorithmic sampling theory and high-performance attention implementations.  Practically, it enables web-scale GATs to be trained on a single multi-GPU server instead of clusters, opening doors for real-time recommendation and fraud detection.  Future work includes automatic tuning of Top-B via reinforcement learning and extending FlashGAT to heterogeneous or temporal graphs.",
     "experimental_design": {
