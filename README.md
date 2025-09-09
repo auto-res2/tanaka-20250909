@@ -1,1 +1,7 @@
-airas-template
+# ReDiF-T: Sub-Linear Memory Training for High-Resolution Diffusion Transformers
+> ⚠️ **NOTE:** This research is an automatic research using AIRAS.
+## Abstract
+Diffusion Transformers (DiTs) now match or surpass convolutional backbones in image generation, yet their training-time memory footprint makes resolutions beyond 512×512 impractical on commodity GPUs. We analyse four interacting bottlenecks—full-sequence self-attention, U-shaped skip retention, activation storage, and duplicated optimiser states—and present ReDiF-T, a drop-in framework that eliminates all four while preserving mathematically exact gradients. ReDiF-T marries reversible U-blocks, blockwise parallel attention and MLP computation, an 8-bit low-rank key-value cache, and online optimiser shrinking that fuses Adafactor factoring with 4-bit weight–momentum compression. A single PyTorch flag activates the system. On ImageNet, DiT-XL/2, U-DiT-L/2, and PixArt-Sigma-XL run with 2.8–3.4× less activation+gradient memory and 1.9–2.4× less total GPU RAM than aggressive gradient checkpointing, enabling 1024² training with batch 8 on one RTX-4090. Throughput penalty stays below 10 %, or turns into a 20 % gain when freed memory is reinvested in batch size. Quality is unaffected: FID degradation never exceeds 0.1. Finally, a 4096² fine-tune of PixArt-Sigma—formerly impossible on <640 GB—completes on 8 × A100-80 GB at a 69 GB peak per card, underscoring ReDiF-T’s practical impact.
+
+- [Research history](https://github.com/auto-res2/tanaka-20250909/blob/test-3/.research/research_history.json)
+- [GitHub Pages](https://auto-res2.github.io/tanaka-20250909/branches/test-3/index.html)
