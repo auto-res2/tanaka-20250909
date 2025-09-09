@@ -5,3 +5,811 @@
   publisher = {GitHub},
   url       = {https://github.com/airas-org/airas}
 }
+
+% ===========================================
+% REQUIRED CITATIONS
+% These papers must be cited in the manuscript
+% ===========================================
+
+@article{chen-2024-edt,
+ abstract = {Transformer-based Diffusion Probabilistic Models (DPMs) have shown more
+potential than CNN-based DPMs, yet their extensive computational requirements
+hinder widespread practical applications. To reduce the computation budget of
+transformer-based DPMs, this work proposes the Efficient Diffusion Transformer
+(EDT) framework. The framework includes a lightweight-design diffusion model
+architecture, and a training-free Attention Modulation Matrix and its
+alternation arrangement in EDT inspired by human-like sketching. Additionally,
+we propose a token relation-enhanced masking training strategy tailored
+explicitly for EDT to augment its token relation learning capability. Our
+extensive experiments demonstrate the efficacy of EDT. The EDT framework
+reduces training and inference costs and surpasses existing transformer-based
+diffusion models in image synthesis performance, thereby achieving a
+significant overall enhancement. With lower FID, EDT-S, EDT-B, and EDT-XL
+attained speed-ups of 3.93x, 2.84x, and 1.92x respectively in the training
+phase, and 2.29x, 2.29x, and 2.22x respectively in inference, compared to the
+corresponding sizes of MDTv2. The source code is released at
+https://github.com/xinwangChen/EDT.},
+ arxiv_url = {https://arxiv.org/pdf/2410.23788v1.pdf},
+ author = {Xinwang Chen and Ning Liu and Yichen Zhu and Feifei Feng and Jian Tang},
+ title = {EDT: An Efficient Diffusion Transformer Framework Inspired by Human-like Sketching},
+ year = {2024}
+}
+
+@article{fang-2023-structural,
+ abstract = {Generative modeling has recently undergone remarkable advancements, primarily
+propelled by the transformative implications of Diffusion Probabilistic Models
+(DPMs). The impressive capability of these models, however, often entails
+significant computational overhead during both training and inference. To
+tackle this challenge, we present Diff-Pruning, an efficient compression method
+tailored for learning lightweight diffusion models from pre-existing ones,
+without the need for extensive re-training. The essence of Diff-Pruning is
+encapsulated in a Taylor expansion over pruned timesteps, a process that
+disregards non-contributory diffusion steps and ensembles informative gradients
+to identify important weights. Our empirical assessment, undertaken across
+several datasets highlights two primary benefits of our proposed method: 1)
+Efficiency: it enables approximately a 50\% reduction in FLOPs at a mere 10\%
+to 20\% of the original training expenditure; 2) Consistency: the pruned
+diffusion models inherently preserve generative behavior congruent with their
+pre-trained models. Code is available at
+\url{https://github.com/VainF/Diff-Pruning}.},
+ arxiv_url = {https://arxiv.org/pdf/2305.10924v3.pdf},
+ author = {Gongfan Fang and Xinyin Ma and Xinchao Wang},
+ github_url = {https://github.com/VainF/Diff-Pruning},
+ title = {Structural Pruning for Diffusion Models},
+ year = {2023}
+}
+
+@article{he-2023-efficientdm,
+ abstract = {Diffusion models have demonstrated remarkable capabilities in image synthesis
+and related generative tasks. Nevertheless, their practicality for real-world
+applications is constrained by substantial computational costs and latency
+issues. Quantization is a dominant way to compress and accelerate diffusion
+models, where post-training quantization (PTQ) and quantization-aware training
+(QAT) are two main approaches, each bearing its own properties. While PTQ
+exhibits efficiency in terms of both time and data usage, it may lead to
+diminished performance in low bit-width. On the other hand, QAT can alleviate
+performance degradation but comes with substantial demands on computational and
+data resources. In this paper, we introduce a data-free and parameter-efficient
+fine-tuning framework for low-bit diffusion models, dubbed EfficientDM, to
+achieve QAT-level performance with PTQ-like efficiency. Specifically, we
+propose a quantization-aware variant of the low-rank adapter (QALoRA) that can
+be merged with model weights and jointly quantized to low bit-width. The
+fine-tuning process distills the denoising capabilities of the full-precision
+model into its quantized counterpart, eliminating the requirement for training
+data. We also introduce scale-aware optimization and temporal learned step-size
+quantization to further enhance performance. Extensive experimental results
+demonstrate that our method significantly outperforms previous PTQ-based
+diffusion models while maintaining similar time and data efficiency.
+Specifically, there is only a 0.05 sFID increase when quantizing both weights
+and activations of LDM-4 to 4-bit on ImageNet 256x256. Compared to QAT-based
+methods, our EfficientDM also boasts a 16.2x faster quantization speed with
+comparable generation quality. Code is available at
+\href{https://github.com/ThisisBillhe/EfficientDM}{this hrl}.},
+ arxiv_url = {https://arxiv.org/pdf/2310.03270v4.pdf},
+ author = {Yefei He and Jing Liu and Weijia Wu and Hong Zhou and Bohan Zhuang},
+ github_url = {https://github.com/ThisisBillhe/EfficientDM},
+ title = {EfficientDM: Efficient Quantization-Aware Fine-Tuning of Low-Bit Diffusion Models},
+ year = {2023}
+}
+
+@article{he-2023-ptqd,
+ abstract = {Diffusion models have recently dominated image synthesis tasks. However, the
+iterative denoising process is expensive in computations at inference time,
+making diffusion models less practical for low-latency and scalable real-world
+applications. Post-training quantization (PTQ) of diffusion models can
+significantly reduce the model size and accelerate the sampling process without
+re-training. Nonetheless, applying existing PTQ methods directly to low-bit
+diffusion models can significantly impair the quality of generated samples.
+Specifically, for each denoising step, quantization noise leads to deviations
+in the estimated mean and mismatches with the predetermined variance schedule.
+As the sampling process proceeds, the quantization noise may accumulate,
+resulting in a low signal-to-noise ratio (SNR) during the later denoising
+steps. To address these challenges, we propose a unified formulation for the
+quantization noise and diffusion perturbed noise in the quantized denoising
+process. Specifically, we first disentangle the quantization noise into its
+correlated and residual uncorrelated parts regarding its full-precision
+counterpart. The correlated part can be easily corrected by estimating the
+correlation coefficient. For the uncorrelated part, we subtract the bias from
+the quantized results to correct the mean deviation and calibrate the denoising
+variance schedule to absorb the excess variance resulting from quantization.
+Moreover, we introduce a mixed-precision scheme for selecting the optimal
+bitwidth for each denoising step. Extensive experiments demonstrate that our
+method outperforms previous post-training quantized diffusion models, with only
+a 0.06 increase in FID score compared to full-precision LDM-4 on ImageNet
+256x256, while saving 19.9x bit operations. Code is available at
+https://github.com/ziplab/PTQD.},
+ arxiv_url = {https://arxiv.org/pdf/2305.10657v4.pdf},
+ author = {Yefei He and Luping Liu and Jing Liu and Weijia Wu and Hong Zhou and Bohan Zhuang},
+ github_url = {https://github.com/ziplab/PTQD},
+ title = {PTQD: Accurate Post-Training Quantization for Diffusion Models},
+ year = {2023}
+}
+
+@article{huang-2024-reverse,
+ abstract = {To generate data from trained diffusion models, most inference algorithms,
+such as DDPM, DDIM, and other variants, rely on discretizing the reverse SDEs
+or their equivalent ODEs. In this paper, we view such approaches as decomposing
+the entire denoising diffusion process into several segments, each
+corresponding to a reverse transition kernel (RTK) sampling subproblem.
+Specifically, DDPM uses a Gaussian approximation for the RTK, resulting in low
+per-subproblem complexity but requiring a large number of segments (i.e.,
+subproblems), which is conjectured to be inefficient. To address this, we
+develop a general RTK framework that enables a more balanced subproblem
+decomposition, resulting in $\tilde O(1)$ subproblems, each with strongly
+log-concave targets. We then propose leveraging two fast sampling algorithms,
+the Metropolis-Adjusted Langevin Algorithm (MALA) and Underdamped Langevin
+Dynamics (ULD), for solving these strongly log-concave subproblems. This gives
+rise to the RTK-MALA and RTK-ULD algorithms for diffusion inference. In theory,
+we further develop the convergence guarantees for RTK-MALA and RTK-ULD in total
+variation (TV) distance: RTK-ULD can achieve $\epsilon$ target error within
+$\tilde{\mathcal O}(d^{1/2}\epsilon^{-1})$ under mild conditions, and RTK-MALA
+enjoys a $\mathcal{O}(d^{2}\log(d/\epsilon))$ convergence rate under slightly
+stricter conditions. These theoretical results surpass the state-of-the-art
+convergence rates for diffusion inference and are well supported by numerical
+experiments.},
+ arxiv_url = {https://arxiv.org/pdf/2405.16387v1.pdf},
+ author = {Xunpeng Huang and Difan Zou and Hanze Dong and Yi Zhang and Yi-An Ma and Tong Zhang},
+ title = {Reverse Transition Kernel: A Flexible Framework to Accelerate Diffusion Inference},
+ year = {2024}
+}
+
+@article{li-2023-faster,
+ abstract = {One of the main drawback of diffusion models is the slow inference time for
+image generation. Among the most successful approaches to addressing this
+problem are distillation methods. However, these methods require considerable
+computational resources. In this paper, we take another approach to diffusion
+model acceleration. We conduct a comprehensive study of the UNet encoder and
+empirically analyze the encoder features. This provides insights regarding
+their changes during the inference process. In particular, we find that encoder
+features change minimally, whereas the decoder features exhibit substantial
+variations across different time-steps. This insight motivates us to omit
+encoder computation at certain adjacent time-steps and reuse encoder features
+of previous time-steps as input to the decoder in multiple time-steps.
+Importantly, this allows us to perform decoder computation in parallel, further
+accelerating the denoising process. Additionally, we introduce a prior noise
+injection method to improve the texture details in the generated image. Besides
+the standard text-to-image task, we also validate our approach on other tasks:
+text-to-video, personalized generation and reference-guided generation. Without
+utilizing any knowledge distillation technique, our approach accelerates both
+the Stable Diffusion (SD) and DeepFloyd-IF model sampling by 41$\%$ and 24$\%$
+respectively, and DiT model sampling by 34$\%$, while maintaining high-quality
+generation performance.},
+ arxiv_url = {https://arxiv.org/pdf/2312.09608v2.pdf},
+ author = {Senmao Li and Taihang Hu and Joost van de Weijer and Fahad Shahbaz Khan and Tao Liu and Linxuan Li and Shiqi Yang and Yaxing Wang and Ming-Ming Cheng and Jian Yang},
+ github_url = {https://github.com/dbolya/tomesd},
+ title = {Faster Diffusion: Rethinking the Role of the Encoder for Diffusion Model Inference},
+ year = {2023}
+}
+
+@article{ma-2024-learning,
+ abstract = {Diffusion Transformers have recently demonstrated unprecedented generative
+capabilities for various tasks. The encouraging results, however, come with the
+cost of slow inference, since each denoising step requires inference on a
+transformer model with a large scale of parameters. In this study, we make an
+interesting and somehow surprising observation: the computation of a large
+proportion of layers in the diffusion transformer, through introducing a
+caching mechanism, can be readily removed even without updating the model
+parameters. In the case of U-ViT-H/2, for example, we may remove up to 93.68%
+of the computation in the cache steps (46.84% for all steps), with less than
+0.01 drop in FID. To achieve this, we introduce a novel scheme, named
+Learning-to-Cache (L2C), that learns to conduct caching in a dynamic manner for
+diffusion transformers. Specifically, by leveraging the identical structure of
+layers in transformers and the sequential nature of diffusion, we explore
+redundant computations between timesteps by treating each layer as the
+fundamental unit for caching. To address the challenge of the exponential
+search space in deep models for identifying layers to cache and remove, we
+propose a novel differentiable optimization objective. An input-invariant yet
+timestep-variant router is then optimized, which can finally produce a static
+computation graph. Experimental results show that L2C largely outperforms
+samplers such as DDIM and DPM-Solver, alongside prior cache-based methods at
+the same inference speed. Code is available at
+https://github.com/horseee/learning-to-cache},
+ arxiv_url = {https://arxiv.org/pdf/2406.01733v2.pdf},
+ author = {Xinyin Ma and Gongfan Fang and Michael Bi Mi and Xinchao Wang},
+ github_url = {https://github.com/horseee/learning-to-cache},
+ title = {Learning-to-Cache: Accelerating Diffusion Transformer via Layer Caching},
+ year = {2024}
+}
+
+@article{moon-2024-simple,
+ abstract = {Diffusion models have shown remarkable performance in generation problems
+over various domains including images, videos, text, and audio. A practical
+bottleneck of diffusion models is their sampling speed, due to the repeated
+evaluation of score estimation networks during the inference. In this work, we
+propose a novel framework capable of adaptively allocating compute required for
+the score estimation, thereby reducing the overall sampling time of diffusion
+models. We observe that the amount of computation required for the score
+estimation may vary along the time step for which the score is estimated. Based
+on this observation, we propose an early-exiting scheme, where we skip the
+subset of parameters in the score estimation network during the inference,
+based on a time-dependent exit schedule. Using the diffusion models for image
+synthesis, we show that our method could significantly improve the sampling
+throughput of the diffusion models without compromising image quality.
+Furthermore, we also demonstrate that our method seamlessly integrates with
+various types of solvers for faster sampling, capitalizing on their
+compatibility to enhance overall efficiency. The source code and our
+experiments are available at \url{https://github.com/taehong-moon/ee-diffusion}},
+ arxiv_url = {https://arxiv.org/pdf/2408.05927v1.pdf},
+ author = {Taehong Moon and Moonseok Choi and EungGu Yun and Jongmin Yoon and Gayoung Lee and Jaewoong Cho and Juho Lee},
+ title = {A Simple Early Exiting Framework for Accelerated Sampling in Diffusion Models},
+ year = {2024}
+}
+
+@article{salimans-2024-multistep,
+ abstract = {We present a new method for making diffusion models faster to sample. The
+method distills many-step diffusion models into few-step models by matching
+conditional expectations of the clean data given noisy data along the sampling
+trajectory. Our approach extends recently proposed one-step methods to the
+multi-step case, and provides a new perspective by interpreting these
+approaches in terms of moment matching. By using up to 8 sampling steps, we
+obtain distilled models that outperform not only their one-step versions but
+also their original many-step teacher models, obtaining new state-of-the-art
+results on the Imagenet dataset. We also show promising results on a large
+text-to-image model where we achieve fast generation of high resolution images
+directly in image space, without needing autoencoders or upsamplers.},
+ arxiv_url = {https://arxiv.org/pdf/2406.04103v1.pdf},
+ author = {Tim Salimans and Thomas Mensink and Jonathan Heek and Emiel Hoogeboom},
+ github_url = {https://github.com/google/jax},
+ title = {Multistep Distillation of Diffusion Models via Moment Matching},
+ year = {2024}
+}
+
+@article{so-2023-temporal,
+ abstract = {The diffusion model has gained popularity in vision applications due to its
+remarkable generative performance and versatility. However, high storage and
+computation demands, resulting from the model size and iterative generation,
+hinder its use on mobile devices. Existing quantization techniques struggle to
+maintain performance even in 8-bit precision due to the diffusion model's
+unique property of temporal variation in activation. We introduce a novel
+quantization method that dynamically adjusts the quantization interval based on
+time step information, significantly improving output quality. Unlike
+conventional dynamic quantization techniques, our approach has no computational
+overhead during inference and is compatible with both post-training
+quantization (PTQ) and quantization-aware training (QAT). Our extensive
+experiments demonstrate substantial improvements in output quality with the
+quantized diffusion model across various datasets.},
+ arxiv_url = {https://arxiv.org/pdf/2306.02316v2.pdf},
+ author = {Junhyuk So and Jungwon Lee and Daehyun Ahn and Hyungjun Kim and Eunhyeok Park},
+ title = {Temporal Dynamic Quantization for Diffusion Models},
+ year = {2023}
+}
+
+@article{sui-2024-bitsfusion,
+ abstract = {Diffusion-based image generation models have achieved great success in recent
+years by showing the capability of synthesizing high-quality content. However,
+these models contain a huge number of parameters, resulting in a significantly
+large model size. Saving and transferring them is a major bottleneck for
+various applications, especially those running on resource-constrained devices.
+In this work, we develop a novel weight quantization method that quantizes the
+UNet from Stable Diffusion v1.5 to 1.99 bits, achieving a model with 7.9X
+smaller size while exhibiting even better generation quality than the original
+one. Our approach includes several novel techniques, such as assigning optimal
+bits to each layer, initializing the quantized model for better performance,
+and improving the training strategy to dramatically reduce quantization error.
+Furthermore, we extensively evaluate our quantized model across various
+benchmark datasets and through human evaluation to demonstrate its superior
+generation quality.},
+ arxiv_url = {https://arxiv.org/pdf/2406.04333v2.pdf},
+ author = {Yang Sui and Yanyu Li and Anil Kag and Yerlan Idelbayev and Junli Cao and Ju Hu and Dhritiman Sagar and Bo Yuan and Sergey Tulyakov and Jian Ren},
+ github_url = {https://github.com/huggingface/diffusers},
+ title = {BitsFusion: 1.99 bits Weight Quantization of Diffusion Model},
+ year = {2024}
+}
+
+@article{tian-2024-dits,
+ abstract = {Diffusion Transformers (DiTs) introduce the transformer architecture to
+diffusion tasks for latent-space image generation. With an isotropic
+architecture that chains a series of transformer blocks, DiTs demonstrate
+competitive performance and good scalability; but meanwhile, the abandonment of
+U-Net by DiTs and their following improvements is worth rethinking. To this
+end, we conduct a simple toy experiment by comparing a U-Net architectured DiT
+with an isotropic one. It turns out that the U-Net architecture only gain a
+slight advantage amid the U-Net inductive bias, indicating potential
+redundancies within the U-Net-style DiT. Inspired by the discovery that U-Net
+backbone features are low-frequency-dominated, we perform token downsampling on
+the query-key-value tuple for self-attention that bring further improvements
+despite a considerable amount of reduction in computation. Based on
+self-attention with downsampled tokens, we propose a series of U-shaped DiTs
+(U-DiTs) in the paper and conduct extensive experiments to demonstrate the
+extraordinary performance of U-DiT models. The proposed U-DiT could outperform
+DiT-XL/2 with only 1/6 of its computation cost. Codes are available at
+https://github.com/YuchuanTian/U-DiT.},
+ arxiv_url = {https://arxiv.org/pdf/2405.02730v3.pdf},
+ author = {Yuchuan Tian and Zhijun Tu and Hanting Chen and Jie Hu and Chao Xu and Yunhe Wang},
+ github_url = {https://github.com/YuchuanTian/U-DiT},
+ journal = {NeurIPS 2024 Poster},
+ title = {U-DiTs: Downsample Tokens in U-Shaped Diffusion Transformers},
+ year = {2024}
+}
+
+@article{wang-2023-towards,
+ abstract = {In this paper, we propose an accurate data-free post-training quantization
+framework of diffusion models (ADP-DM) for efficient image generation.
+Conventional data-free quantization methods learn shared quantization functions
+for tensor discretization regardless of the generation timesteps, while the
+activation distribution differs significantly across various timesteps. The
+calibration images are acquired in random timesteps which fail to provide
+sufficient information for generalizable quantization function learning. Both
+issues cause sizable quantization errors with obvious image generation
+performance degradation. On the contrary, we design group-wise quantization
+functions for activation discretization in different timesteps and sample the
+optimal timestep for informative calibration image generation, so that our
+quantized diffusion model can reduce the discretization errors with negligible
+computational overhead. Specifically, we partition the timesteps according to
+the importance weights of quantization functions in different groups, which are
+optimized by differentiable search algorithms. We also select the optimal
+timestep for calibration image generation by structural risk minimizing
+principle in order to enhance the generalization ability in the deployment of
+quantized diffusion model. Extensive experimental results show that our method
+outperforms the state-of-the-art post-training quantization of diffusion model
+by a sizable margin with similar computational cost.},
+ arxiv_url = {https://arxiv.org/pdf/2305.18723v4.pdf},
+ author = {Changyuan Wang and Ziwei Wang and Xiuwei Xu and Yansong Tang and Jie Zhou and Jiwen Lu},
+ github_url = {https://github.com/ChangyuanWang17/APQ-DM},
+ title = {Towards Accurate Post-training Quantization for Diffusion Models},
+ year = {2023}
+}
+
+@article{wang-2024-attention,
+ abstract = {Diffusion Models (DMs) have exhibited superior performance in generating
+high-quality and diverse images. However, this exceptional performance comes at
+the cost of expensive architectural design, particularly due to the attention
+module heavily used in leading models. Existing works mainly adopt a retraining
+process to enhance DM efficiency. This is computationally expensive and not
+very scalable. To this end, we introduce the Attention-driven Training-free
+Efficient Diffusion Model (AT-EDM) framework that leverages attention maps to
+perform run-time pruning of redundant tokens, without the need for any
+retraining. Specifically, for single-denoising-step pruning, we develop a novel
+ranking algorithm, Generalized Weighted Page Rank (G-WPR), to identify
+redundant tokens, and a similarity-based recovery method to restore tokens for
+the convolution operation. In addition, we propose a Denoising-Steps-Aware
+Pruning (DSAP) approach to adjust the pruning budget across different denoising
+timesteps for better generation quality. Extensive evaluations show that AT-EDM
+performs favorably against prior art in terms of efficiency (e.g., 38.8% FLOPs
+saving and up to 1.53x speed-up over Stable Diffusion XL) while maintaining
+nearly the same FID and CLIP scores as the full model. Project webpage:
+https://atedm.github.io.},
+ arxiv_url = {https://arxiv.org/pdf/2405.05252v1.pdf},
+ author = {Hongjie Wang and Difan Liu and Yan Kang and Yijun Li and Zhe Lin and Niraj K. Jha and Yuchen Liu},
+ title = {Attention-Driven Training-Free Efficiency Enhancement of Diffusion Models},
+ year = {2024}
+}
+
+@article{wu-2024-post,
+ abstract = {The recent introduction of Diffusion Transformers (DiTs) has demonstrated
+exceptional capabilities in image generation by using a different backbone
+architecture, departing from traditional U-Nets and embracing the scalable
+nature of transformers. Despite their advanced capabilities, the wide
+deployment of DiTs, particularly for real-time applications, is currently
+hampered by considerable computational demands at the inference stage.
+Post-training Quantization (PTQ) has emerged as a fast and data-efficient
+solution that can significantly reduce computation and memory footprint by
+using low-bit weights and activations. However, its applicability to DiTs has
+not yet been explored and faces non-trivial difficulties due to the unique
+design of DiTs. In this paper, we propose PTQ4DiT, a specifically designed PTQ
+method for DiTs. We discover two primary quantization challenges inherent in
+DiTs, notably the presence of salient channels with extreme magnitudes and the
+temporal variability in distributions of salient activation over multiple
+timesteps. To tackle these challenges, we propose Channel-wise Salience
+Balancing (CSB) and Spearmen's $\rho$-guided Salience Calibration (SSC). CSB
+leverages the complementarity property of channel magnitudes to redistribute
+the extremes, alleviating quantization errors for both activations and weights.
+SSC extends this approach by dynamically adjusting the balanced salience to
+capture the temporal variations in activation. Additionally, to eliminate extra
+computational costs caused by PTQ4DiT during inference, we design an offline
+re-parameterization strategy for DiTs. Experiments demonstrate that our PTQ4DiT
+successfully quantizes DiTs to 8-bit precision (W8A8) while preserving
+comparable generation ability and further enables effective quantization to
+4-bit weight precision (W4A8) for the first time.},
+ arxiv_url = {https://arxiv.org/pdf/2405.16005v3.pdf},
+ author = {Junyi Wu and Haoxuan Wang and Yuzhang Shang and Mubarak Shah and Yan Yan},
+ github_url = {https://github.com/adreamwu/PTQ4DiT},
+ title = {PTQ4DiT: Post-training Quantization for Diffusion Transformers},
+ year = {2024}
+}
+
+@article{xu-2023-semi,
+ abstract = {Despite the proliferation of generative models, achieving fast sampling
+during inference without compromising sample diversity and quality remains
+challenging. Existing models such as Denoising Diffusion Probabilistic Models
+(DDPM) deliver high-quality, diverse samples but are slowed by an inherently
+high number of iterative steps. The Denoising Diffusion Generative Adversarial
+Networks (DDGAN) attempted to circumvent this limitation by integrating a GAN
+model for larger jumps in the diffusion process. However, DDGAN encountered
+scalability limitations when applied to large datasets. To address these
+limitations, we introduce a novel approach that tackles the problem by matching
+implicit and explicit factors. More specifically, our approach involves
+utilizing an implicit model to match the marginal distributions of noisy data
+and the explicit conditional distribution of the forward diffusion. This
+combination allows us to effectively match the joint denoising distributions.
+Unlike DDPM but similar to DDGAN, we do not enforce a parametric distribution
+for the reverse step, enabling us to take large steps during inference. Similar
+to the DDPM but unlike DDGAN, we take advantage of the exact form of the
+diffusion process. We demonstrate that our proposed method obtains comparable
+generative performance to diffusion-based models and vastly superior results to
+models with a small number of sampling steps.},
+ arxiv_url = {https://arxiv.org/pdf/2306.12511v3.pdf},
+ author = {Yanwu Xu and Mingming Gong and Shaoan Xie and Wei Wei and Matthias Grundmann and Kayhan Batmanghelich and Tingbo Hou},
+ title = {Semi-Implicit Denoising Diffusion Models (SIDDMs)},
+ year = {2023}
+}
+
+@article{yao-2024-fasterdit,
+ abstract = {Diffusion Transformers (DiT) have attracted significant attention in
+research. However, they suffer from a slow convergence rate. In this paper, we
+aim to accelerate DiT training without any architectural modification. We
+identify the following issues in the training process: firstly, certain
+training strategies do not consistently perform well across different data.
+Secondly, the effectiveness of supervision at specific timesteps is limited. In
+response, we propose the following contributions: (1) We introduce a new
+perspective for interpreting the failure of the strategies. Specifically, we
+slightly extend the definition of Signal-to-Noise Ratio (SNR) and suggest
+observing the Probability Density Function (PDF) of SNR to understand the
+essence of the data robustness of the strategy. (2) We conduct numerous
+experiments and report over one hundred experimental results to empirically
+summarize a unified accelerating strategy from the perspective of PDF. (3) We
+develop a new supervision method that further accelerates the training process
+of DiT. Based on them, we propose FasterDiT, an exceedingly simple and
+practicable design strategy. With few lines of code modifications, it achieves
+2.30 FID on ImageNet 256 resolution at 1000k iterations, which is comparable to
+DiT (2.27 FID) but 7 times faster in training.},
+ arxiv_url = {https://arxiv.org/pdf/2410.10356v2.pdf},
+ author = {Jingfeng Yao and Wang Cheng and Wenyu Liu and Xinggang Wang},
+ title = {FasterDiT: Towards Faster Diffusion Transformers Training without Architecture Modification},
+ year = {2024}
+}
+
+@article{yuan-2024-ditfastattn,
+ abstract = {Diffusion Transformers (DiT) excel at image and video generation but face
+computational challenges due to the quadratic complexity of self-attention
+operators. We propose DiTFastAttn, a post-training compression method to
+alleviate the computational bottleneck of DiT. We identify three key
+redundancies in the attention computation during DiT inference: (1) spatial
+redundancy, where many attention heads focus on local information; (2) temporal
+redundancy, with high similarity between the attention outputs of neighboring
+steps; (3) conditional redundancy, where conditional and unconditional
+inferences exhibit significant similarity. We propose three techniques to
+reduce these redundancies: (1) Window Attention with Residual Sharing to reduce
+spatial redundancy; (2) Attention Sharing across Timesteps to exploit the
+similarity between steps; (3) Attention Sharing across CFG to skip redundant
+computations during conditional generation. We apply DiTFastAttn to DiT,
+PixArt-Sigma for image generation tasks, and OpenSora for video generation
+tasks. Our results show that for image generation, our method reduces up to 76%
+of the attention FLOPs and achieves up to 1.8x end-to-end speedup at
+high-resolution (2k x 2k) generation.},
+ arxiv_url = {https://arxiv.org/pdf/2406.08552v2.pdf},
+ author = {Zhihang Yuan and Hanling Zhang and Pu Lu and Xuefei Ning and Linfeng Zhang and Tianchen Zhao and Shengen Yan and Guohao Dai and Yu Wang},
+ github_url = {https://github.com/hpcaitech/Open-Sora},
+ title = {DiTFastAttn: Attention Compression for Diffusion Transformer Models},
+ year = {2024}
+}
+
+@article{zhou-2023-fast,
+ abstract = {Sampling from diffusion models can be treated as solving the corresponding
+ordinary differential equations (ODEs), with the aim of obtaining an accurate
+solution with as few number of function evaluations (NFE) as possible.
+Recently, various fast samplers utilizing higher-order ODE solvers have emerged
+and achieved better performance than the initial first-order one. However,
+these numerical methods inherently result in certain approximation errors,
+which significantly degrades sample quality with extremely small NFE (e.g.,
+around 5). In contrast, based on the geometric observation that each sampling
+trajectory almost lies in a two-dimensional subspace embedded in the ambient
+space, we propose Approximate MEan-Direction Solver (AMED-Solver) that
+eliminates truncation errors by directly learning the mean direction for fast
+diffusion sampling. Besides, our method can be easily used as a plugin to
+further improve existing ODE-based samplers. Extensive experiments on image
+synthesis with the resolution ranging from 32 to 512 demonstrate the
+effectiveness of our method. With only 5 NFE, we achieve 6.61 FID on CIFAR-10,
+10.74 FID on ImageNet 64$\times$64, and 13.20 FID on LSUN Bedroom. Our code is
+available at https://github.com/zju-pi/diff-sampler.},
+ arxiv_url = {https://arxiv.org/pdf/2312.00094v3.pdf},
+ author = {Zhenyu Zhou and Defang Chen and Can Wang and Chun Chen},
+ title = {Fast ODE-based Sampling for Diffusion Models in Around 5 Steps},
+ year = {2023}
+}
+
+@article{zhu-2024-dip,
+ abstract = {Diffusion models have achieved remarkable progress in the field of image
+generation due to their outstanding capabilities. However, these models require
+substantial computing resources because of the multi-step denoising process
+during inference. While traditional pruning methods have been employed to
+optimize these models, the retraining process necessitates large-scale training
+datasets and extensive computational costs to maintain generalization ability,
+making it neither convenient nor efficient. Recent studies attempt to utilize
+the similarity of features across adjacent denoising stages to reduce
+computational costs through simple and static strategies. However, these
+strategies cannot fully harness the potential of the similar feature patterns
+across adjacent timesteps. In this work, we propose a novel pruning method that
+derives an efficient diffusion model via a more intelligent and differentiable
+pruner. At the core of our approach is casting the model pruning process into a
+SubNet search process. Specifically, we first introduce a SuperNet based on
+standard diffusion via adding some backup connections built upon the similar
+features. We then construct a plugin pruner network and design optimization
+losses to identify redundant computation. Finally, our method can identify an
+optimal SubNet through few-step gradient optimization and a simple
+post-processing procedure. We conduct extensive experiments on various
+diffusion models including Stable Diffusion series and DiTs. Our DiP-GO
+approach achieves 4.4 x speedup for SD-1.5 without any loss of accuracy,
+significantly outperforming the previous state-of-the-art methods.},
+ arxiv_url = {https://arxiv.org/pdf/2410.16942v1.pdf},
+ author = {Haowei Zhu and Dehua Tang and Ji Liu and Mingjie Lu and Jintu Zheng and Jinzhang Peng and Dong Li and Yu Wang and Fan Jiang and Lu Tian and Spandan Tiwari and Ashish Sirasao and Jun-Hai Yong and Bin Wang and Emad Barsoum},
+ title = {DiP-GO: A Diffusion Pruner via Few-step Gradient Optimization},
+ year = {2024}
+}
+
+% ===========================================
+% REFERENCE CANDIDATES
+% Additional reference papers for context
+% ===========================================
+
+@article{author-year-imagenet,
+ title = {Imagenet: A large-scale hierarchical image database}
+}
+
+@article{author-year-logistic,
+ title = {Logistic-normal distributions: Some properties and uses}
+}
+
+@article{bao-2022-all,
+ abstract = {Vision transformers (ViT) have shown promise in various vision tasks while
+the U-Net based on a convolutional neural network (CNN) remains dominant in
+diffusion models. We design a simple and general ViT-based architecture (named
+U-ViT) for image generation with diffusion models. U-ViT is characterized by
+treating all inputs including the time, condition and noisy image patches as
+tokens and employing long skip connections between shallow and deep layers. We
+evaluate U-ViT in unconditional and class-conditional image generation, as well
+as text-to-image generation tasks, where U-ViT is comparable if not superior to
+a CNN-based U-Net of a similar size. In particular, latent diffusion models
+with U-ViT achieve record-breaking FID scores of 2.29 in class-conditional
+image generation on ImageNet 256x256, and 5.48 in text-to-image generation on
+MS-COCO, among methods without accessing large external datasets during the
+training of generative models. Our results suggest that, for diffusion-based
+image modeling, the long skip connection is crucial while the down-sampling and
+up-sampling operators in CNN-based U-Net are not always necessary. We believe
+that U-ViT can provide insights for future research on backbones in diffusion
+models and benefit generative modeling on large scale cross-modality datasets.},
+ arxiv_url = {https://arxiv.org/pdf/2209.12152v4.pdf},
+ author = {Fan Bao and Shen Nie and Kaiwen Xue and Yue Cao and Chongxuan Li and Hang Su and Jun Zhu},
+ title = {All are worth words: A vit backbone for diffusion models},
+ year = {2022}
+}
+
+@article{cai-2024-condition,
+ abstract = {We present Condition-Aware Neural Network (CAN), a new method for adding
+control to image generative models. In parallel to prior conditional control
+methods, CAN controls the image generation process by dynamically manipulating
+the weight of the neural network. This is achieved by introducing a
+condition-aware weight generation module that generates conditional weight for
+convolution/linear layers based on the input condition. We test CAN on
+class-conditional image generation on ImageNet and text-to-image generation on
+COCO. CAN consistently delivers significant improvements for diffusion
+transformer models, including DiT and UViT. In particular, CAN combined with
+EfficientViT (CaT) achieves 2.78 FID on ImageNet 512x512, surpassing DiT-XL/2
+while requiring 52x fewer MACs per sampling step.},
+ arxiv_url = {https://arxiv.org/pdf/2404.01143v1.pdf},
+ author = {Han Cai and Muyang Li and Zhuoyang Zhang and Qinsheng Zhang and Ming-Yu Liu and Song Han},
+ title = {Condition-aware neural network for controlled image generation},
+ year = {2024}
+}
+
+@article{chen-2023-pixart,
+ abstract = {The most advanced text-to-image (T2I) models require significant training
+costs (e.g., millions of GPU hours), seriously hindering the fundamental
+innovation for the AIGC community while increasing CO2 emissions. This paper
+introduces PIXART-$\alpha$, a Transformer-based T2I diffusion model whose image
+generation quality is competitive with state-of-the-art image generators (e.g.,
+Imagen, SDXL, and even Midjourney), reaching near-commercial application
+standards. Additionally, it supports high-resolution image synthesis up to
+1024px resolution with low training cost, as shown in Figure 1 and 2. To
+achieve this goal, three core designs are proposed: (1) Training strategy
+decomposition: We devise three distinct training steps that separately optimize
+pixel dependency, text-image alignment, and image aesthetic quality; (2)
+Efficient T2I Transformer: We incorporate cross-attention modules into
+Diffusion Transformer (DiT) to inject text conditions and streamline the
+computation-intensive class-condition branch; (3) High-informative data: We
+emphasize the significance of concept density in text-image pairs and leverage
+a large Vision-Language model to auto-label dense pseudo-captions to assist
+text-image alignment learning. As a result, PIXART-$\alpha$'s training speed
+markedly surpasses existing large-scale T2I models, e.g., PIXART-$\alpha$ only
+takes 10.8% of Stable Diffusion v1.5's training time (675 vs. 6,250 A100 GPU
+days), saving nearly \$300,000 (\$26,000 vs. \$320,000) and reducing 90% CO2
+emissions. Moreover, compared with a larger SOTA model, RAPHAEL, our training
+cost is merely 1%. Extensive experiments demonstrate that PIXART-$\alpha$
+excels in image quality, artistry, and semantic control. We hope
+PIXART-$\alpha$ will provide new insights to the AIGC community and startups to
+accelerate building their own high-quality yet low-cost generative models from
+scratch.},
+ arxiv_url = {https://arxiv.org/pdf/2310.00426v3.pdf},
+ author = {Junsong Chen and Jincheng Yu and Chongjian Ge and Lewei Yao and Enze Xie and Yue Wu and Zhongdao Wang and James Kwok and Ping Luo and Huchuan Lu and Zhenguo Li},
+ title = {Pixart-α: Fast training of diffusion transformer for photorealistic text-to-image synthesis},
+ year = {2023}
+}
+
+@article{chen-2023-the,
+ abstract = {We empirically study the effect of noise scheduling strategies for denoising
+diffusion generative models. There are three findings: (1) the noise scheduling
+is crucial for the performance, and the optimal one depends on the task (e.g.,
+image sizes), (2) when increasing the image size, the optimal noise scheduling
+shifts towards a noisier one (due to increased redundancy in pixels), and (3)
+simply scaling the input data by a factor of $b$ while keeping the noise
+schedule function fixed (equivalent to shifting the logSNR by $\log b$) is a
+good strategy across image sizes. This simple recipe, when combined with
+recently proposed Recurrent Interface Network (RIN), yields state-of-the-art
+pixel-based diffusion models for high-resolution images on ImageNet, enabling
+single-stage, end-to-end generation of diverse and high-fidelity images at
+1024$\times$1024 resolution (without upsampling/cascades).},
+ arxiv_url = {https://arxiv.org/pdf/2301.10972v4.pdf},
+ author = {Ting Chen},
+ title = {On the importance of noise scheduling for diffusion models},
+ year = {2023}
+}
+
+@article{chen-2024-pixart,
+ abstract = {In this paper, we introduce PixArt-\Sigma, a Diffusion Transformer
+model~(DiT) capable of directly generating images at 4K resolution.
+PixArt-\Sigma represents a significant advancement over its predecessor,
+PixArt-\alpha, offering images of markedly higher fidelity and improved
+alignment with text prompts. A key feature of PixArt-\Sigma is its training
+efficiency. Leveraging the foundational pre-training of PixArt-\alpha, it
+evolves from the `weaker' baseline to a `stronger' model via incorporating
+higher quality data, a process we term "weak-to-strong training". The
+advancements in PixArt-\Sigma are twofold: (1) High-Quality Training Data:
+PixArt-\Sigma incorporates superior-quality image data, paired with more
+precise and detailed image captions. (2) Efficient Token Compression: we
+propose a novel attention module within the DiT framework that compresses both
+keys and values, significantly improving efficiency and facilitating
+ultra-high-resolution image generation. Thanks to these improvements,
+PixArt-\Sigma achieves superior image quality and user prompt adherence
+capabilities with significantly smaller model size (0.6B parameters) than
+existing text-to-image diffusion models, such as SDXL (2.6B parameters) and SD
+Cascade (5.1B parameters). Moreover, PixArt-\Sigma's capability to generate 4K
+images supports the creation of high-resolution posters and wallpapers,
+efficiently bolstering the production of high-quality visual content in
+industries such as film and gaming.},
+ arxiv_url = {https://arxiv.org/pdf/2403.04692v2.pdf},
+ author = {Junsong Chen and Chongjian Ge and Enze Xie and Yue Wu and Lewei Yao and Xiaozhe Ren and Zhongdao Wang and Ping Luo and Huchuan Lu and Zhenguo Li},
+ title = {Pixart-σ: Weak-to-strong training of diffusion transformer for 4k text-to-image generation},
+ year = {2024}
+}
+
+@article{dhariwal-2021-diffusion,
+ abstract = {We show that diffusion models can achieve image sample quality superior to
+the current state-of-the-art generative models. We achieve this on
+unconditional image synthesis by finding a better architecture through a series
+of ablations. For conditional image synthesis, we further improve sample
+quality with classifier guidance: a simple, compute-efficient method for
+trading off diversity for fidelity using gradients from a classifier. We
+achieve an FID of 2.97 on ImageNet 128$\times$128, 4.59 on ImageNet
+256$\times$256, and 7.72 on ImageNet 512$\times$512, and we match BigGAN-deep
+even with as few as 25 forward passes per sample, all while maintaining better
+coverage of the distribution. Finally, we find that classifier guidance
+combines well with upsampling diffusion models, further improving FID to 3.94
+on ImageNet 256$\times$256 and 3.85 on ImageNet 512$\times$512. We release our
+code at https://github.com/openai/guided-diffusion},
+ arxiv_url = {https://arxiv.org/pdf/2105.05233v4.pdf},
+ author = {Prafulla Dhariwal and Alex Nichol},
+ title = {Diffusion models beat gans on image synthesis},
+ year = {2021}
+}
+
+@article{dosovitskiy-2020-image,
+ abstract = {While the Transformer architecture has become the de-facto standard for
+natural language processing tasks, its applications to computer vision remain
+limited. In vision, attention is either applied in conjunction with
+convolutional networks, or used to replace certain components of convolutional
+networks while keeping their overall structure in place. We show that this
+reliance on CNNs is not necessary and a pure transformer applied directly to
+sequences of image patches can perform very well on image classification tasks.
+When pre-trained on large amounts of data and transferred to multiple mid-sized
+or small image recognition benchmarks (ImageNet, CIFAR-100, VTAB, etc.), Vision
+Transformer (ViT) attains excellent results compared to state-of-the-art
+convolutional networks while requiring substantially fewer computational
+resources to train.},
+ arxiv_url = {https://arxiv.org/pdf/2010.11929v2.pdf},
+ author = {Alexey Dosovitskiy and Lucas Beyer and Alexander Kolesnikov and Dirk Weissenborn and Xiaohua Zhai and Thomas Unterthiner and Mostafa Dehghani and Matthias Minderer and Georg Heigold and Sylvain Gelly and Jakob Uszkoreit and Neil Houlsby},
+ title = {An image is worth 16x16 words: Transformers for image recognition at scale},
+ year = {2020}
+}
+
+@article{esser-2024-scaling,
+ abstract = {Diffusion models create data from noise by inverting the forward paths of
+data towards noise and have emerged as a powerful generative modeling technique
+for high-dimensional, perceptual data such as images and videos. Rectified flow
+is a recent generative model formulation that connects data and noise in a
+straight line. Despite its better theoretical properties and conceptual
+simplicity, it is not yet decisively established as standard practice. In this
+work, we improve existing noise sampling techniques for training rectified flow
+models by biasing them towards perceptually relevant scales. Through a
+large-scale study, we demonstrate the superior performance of this approach
+compared to established diffusion formulations for high-resolution
+text-to-image synthesis. Additionally, we present a novel transformer-based
+architecture for text-to-image generation that uses separate weights for the
+two modalities and enables a bidirectional flow of information between image
+and text tokens, improving text comprehension, typography, and human preference
+ratings. We demonstrate that this architecture follows predictable scaling
+trends and correlates lower validation loss to improved text-to-image synthesis
+as measured by various metrics and human evaluations. Our largest models
+outperform state-of-the-art models, and we will make our experimental data,
+code, and model weights publicly available.},
+ arxiv_url = {https://arxiv.org/pdf/2403.03206v1.pdf},
+ author = {Patrick Esser and Sumith Kulal and Andreas Blattmann and Rahim Entezari and Jonas Müller and Harry Saini and Yam Levi and Dominik Lorenz and Axel Sauer and Frederic Boesel and Dustin Podell and Tim Dockhorn and Zion English and Kyle Lacey and Alex Goodwin and Yannik Marek and Robin Rombach},
+ title = {Scaling rectified flow transformers for high-resolution image synthesis},
+ year = {2024}
+}
+
+@article{gao-2023-masked,
+ abstract = {Despite its success in image synthesis, we observe that diffusion
+probabilistic models (DPMs) often lack contextual reasoning ability to learn
+the relations among object parts in an image, leading to a slow learning
+process. To solve this issue, we propose a Masked Diffusion Transformer (MDT)
+that introduces a mask latent modeling scheme to explicitly enhance the DPMs'
+ability to contextual relation learning among object semantic parts in an
+image. During training, MDT operates in the latent space to mask certain
+tokens. Then, an asymmetric diffusion transformer is designed to predict masked
+tokens from unmasked ones while maintaining the diffusion generation process.
+Our MDT can reconstruct the full information of an image from its incomplete
+contextual input, thus enabling it to learn the associated relations among
+image tokens. We further improve MDT with a more efficient macro network
+structure and training strategy, named MDTv2. Experimental results show that
+MDTv2 achieves superior image synthesis performance, e.g., a new SOTA FID score
+of 1.58 on the ImageNet dataset, and has more than 10x faster learning speed
+than the previous SOTA DiT. The source code is released at
+https://github.com/sail-sg/MDT.},
+ arxiv_url = {https://arxiv.org/pdf/2303.14389v2.pdf},
+ author = {Shanghua Gao and Pan Zhou and Ming-Ming Cheng and Shuicheng Yan},
+ title = {Masked diffusion transformer is a strong image synthesizer},
+ year = {2023}
+}
+
+@article{gao-2024-lumina,
+ abstract = {Sora unveils the potential of scaling Diffusion Transformer for generating
+photorealistic images and videos at arbitrary resolutions, aspect ratios, and
+durations, yet it still lacks sufficient implementation details. In this
+technical report, we introduce the Lumina-T2X family - a series of Flow-based
+Large Diffusion Transformers (Flag-DiT) equipped with zero-initialized
+attention, as a unified framework designed to transform noise into images,
+videos, multi-view 3D objects, and audio clips conditioned on text
+instructions. By tokenizing the latent spatial-temporal space and incorporating
+learnable placeholders such as [nextline] and [nextframe] tokens, Lumina-T2X
+seamlessly unifies the representations of different modalities across various
+spatial-temporal resolutions. This unified approach enables training within a
+single framework for different modalities and allows for flexible generation of
+multimodal data at any resolution, aspect ratio, and length during inference.
+Advanced techniques like RoPE, RMSNorm, and flow matching enhance the
+stability, flexibility, and scalability of Flag-DiT, enabling models of
+Lumina-T2X to scale up to 7 billion parameters and extend the context window to
+128K tokens. This is particularly beneficial for creating ultra-high-definition
+images with our Lumina-T2I model and long 720p videos with our Lumina-T2V
+model. Remarkably, Lumina-T2I, powered by a 5-billion-parameter Flag-DiT,
+requires only 35% of the training computational costs of a
+600-million-parameter naive DiT. Our further comprehensive analysis underscores
+Lumina-T2X's preliminary capability in resolution extrapolation,
+high-resolution editing, generating consistent 3D views, and synthesizing
+videos with seamless transitions. We expect that the open-sourcing of
+Lumina-T2X will further foster creativity, transparency, and diversity in the
+generative AI community.},
+ arxiv_url = {https://arxiv.org/pdf/2405.05945v3.pdf},
+ author = {Peng Gao and Le Zhuo and Dongyang Liu and Ruoyi Du and Xu Luo and Longtian Qiu and Yuhang Zhang and Chen Lin and Rongjie Huang and Shijie Geng and Renrui Zhang and Junlin Xi and Wenqi Shao and Zhengkai Jiang and Tianshuo Yang and Weicai Ye and He Tong and Jingwen He and Yu Qiao and Hongsheng Li},
+ title = {Lumina-t2x: Transforming text into any modality, resolution, and duration via flow-based large diffusion transformers},
+ year = {2024}
+}
+
+@article{hang-2023-efficient,
+ abstract = {Denoising diffusion models have been a mainstream approach for image
+generation, however, training these models often suffers from slow convergence.
+In this paper, we discovered that the slow convergence is partly due to
+conflicting optimization directions between timesteps. To address this issue,
+we treat the diffusion training as a multi-task learning problem, and introduce
+a simple yet effective approach referred to as Min-SNR-$\gamma$. This method
+adapts loss weights of timesteps based on clamped signal-to-noise ratios, which
+effectively balances the conflicts among timesteps. Our results demonstrate a
+significant improvement in converging speed, 3.4$\times$ faster than previous
+weighting strategies. It is also more effective, achieving a new record FID
+score of 2.06 on the ImageNet $256\times256$ benchmark using smaller
+architectures than that employed in previous state-of-the-art. The code is
+available at https://github.com/TiankaiHang/Min-SNR-Diffusion-Training.},
+ arxiv_url = {https://arxiv.org/pdf/2303.09556v3.pdf},
+ author = {Tiankai Hang and Shuyang Gu and Chen Li and Jianmin Bao and Dong Chen and Han Hu and Xin Geng and Baining Guo},
+ title = {Efficient diffusion training via min-snr weighting strategy},
+ year = {2023}
+}
