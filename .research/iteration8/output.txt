@@ -1,0 +1,27 @@
+=== uv sync start Tue Sep  9 07:05:18 AM UTC 2025 ===
+=== uv install end Tue Sep  9 07:05:26 AM UTC 2025 ===
+=== experiment start Tue Sep  9 07:05:26 AM UTC 2025 ===
+[INFO] csr_wrap: Pipeline has no attribute 'unet'. CSR instrumentation skipped for this model type.
+[INFO] ImageNet-V2 not found locally – skipping FID computation. Results will contain NaNs.
+[INFO] csr_wrap: Pipeline has no attribute 'unet'. CSR instrumentation skipped for this model type.
+[INFO] ImageNet-V2 not found locally – skipping FID computation. Results will contain NaNs.
+[INFO] csr_wrap: Pipeline has no attribute 'unet'. CSR instrumentation skipped for this model type.
+[INFO] ImageNet-V2 not found locally – skipping FID computation. Results will contain NaNs.
+[
+  {
+    "seed": 17,
+    "fid": NaN,
+    "csr_fid": NaN
+  },
+  {
+    "seed": 23,
+    "fid": NaN,
+    "csr_fid": NaN
+  },
+  {
+    "seed": 42,
+    "fid": NaN,
+    "csr_fid": NaN
+  }
+]
+=== experiment end Tue Sep  9 07:09:47 AM UTC 2025 ===
