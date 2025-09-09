@@ -148,6 +148,7 @@ def _locate_spatial_transformer():
         "diffusers.models.attention_processor",  # ≤0.19
         "diffusers.models.attention",            # 0.20 – 0.24
         "diffusers.models.transformer_2d",       # 0.25+
+        "diffusers.models.attention_blocks",     # 0.35+ (name changed again)
     ]
 
     for path in candidate_paths:
@@ -158,8 +159,9 @@ def _locate_spatial_transformer():
         if hasattr(module, "SpatialTransformer"):
             return getattr(module, "SpatialTransformer")
 
-    # As a last resort perform a brute-force search through sub-modules that
-    # are already imported (avoids a costly pkg traversal).
+    # ------------------------------------------------------------------
+    #  Fallback 1 – brute-force search through *imported* diffusers sub-mods
+    # ------------------------------------------------------------------
     for mod in list(sys.modules.values()):
         if mod is None or not hasattr(mod, "__name__"):
             continue
@@ -170,6 +172,17 @@ def _locate_spatial_transformer():
         "SpatialTransformer class not found within the installed diffusers package. "
         "Please upgrade diffusers (>=0.30 recommended)."
     )
+
+
+# ---------------------------------------------------------------------------
+#  *Additional* fallback – discover the class directly from the UNet instance
+# ---------------------------------------------------------------------------
+
+def _discover_from_unet(unet):  # noqa: ANN001 – internal helper
+    for m in unet.modules():
+        if m.__class__.__name__ == "SpatialTransformer":
+            return m.__class__
+    return None
 
 
 def csr_wrap(pipe, *, compression_ratio: int = 8, K_max: int = 8):
@@ -190,15 +203,31 @@ def csr_wrap(pipe, *, compression_ratio: int = 8, K_max: int = 8):
     # used in environments where diffusers is only an optional dependency.
     try:
         SpatialTransformer = _locate_spatial_transformer()
-    except ImportError as exc:  # pragma: no cover – informative error
-        raise ImportError("diffusers >= 0.20 is required for csr_wrap") from exc
+    except ImportError:
+        SpatialTransformer = None  # We will attempt in-UNet discovery below.
+
+    if SpatialTransformer is None:
+        SpatialTransformer = _discover_from_unet(pipe.unet)
+
+    if SpatialTransformer is None:
+        raise ImportError(
+            "Unable to locate SpatialTransformer class inside diffusers – "
+            "please upgrade diffusers (>=0.30) or open an issue with the new "
+            "import path."
+        )
 
     cache_mgr = CSRCacheManager(K_max)
     device = pipe.device if hasattr(pipe, "device") else torch.device("cpu")
 
     for name, module in pipe.unet.named_modules():
         if isinstance(module, SpatialTransformer):
-            in_ch = module.norm.out_channels  # type: ignore[attr-defined]
+            # Some SpatialTransformer impls expose `norm` differently; fall back safely.
+            in_ch = getattr(module, "norm", None)
+            if in_ch is None or not hasattr(in_ch, "out_channels"):
+                # Skip modules we cannot confidently handle.
+                continue
+            in_ch = in_ch.out_channels  # type: ignore[attr-defined]
+
             enc = CSREncoder(in_ch, compression_ratio).to(device)
             dec = CSRDecoder(in_ch, compression_ratio).to(device)
             router = CSRRouter(in_ch, K_max).to(device)

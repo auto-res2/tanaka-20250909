@@ -28,11 +28,11 @@ from src import train as trn
 #  Directories & configuration
 # ---------------------------------------------------------------------------
 
-# All research artefacts for *this* iteration live under .research/iteration6
-_RESEARCH_DIR = pathlib.Path(".research") / "iteration6"
+# All research artefacts for *this* iteration live under .research/iteration7
+_RESEARCH_DIR = pathlib.Path(".research") / "iteration7"
 _RESEARCH_DIR.mkdir(parents=True, exist_ok=True)
 
-# Images are stored under .research/iteration6/images/…
+# Images are stored under .research/iteration7/images/…
 _IMAGES_DIR = _RESEARCH_DIR / "images"
 _IMAGES_DIR.mkdir(exist_ok=True, parents=True)
 
@@ -238,7 +238,7 @@ def _run_experiment():
 def main():  # noqa: D401 – script-style entry-point
     results = _run_experiment()
 
-    # Each experiment result lives in its own JSON file under .research/iteration6/
+    # Each experiment result lives in its own JSON file under .research/iteration7/
     result_path = _RESEARCH_DIR / f"{EXP_CFG['name']}_results.json"
     result_path.write_text(json.dumps(results, indent=2))
 
