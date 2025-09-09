@@ -7,6 +7,7 @@ from __future__ import annotations
 import importlib
 import types
 import inspect
+import sys  # <-- Added to fix NameError
 from typing import Dict, Any
 
 import torch
@@ -159,7 +160,7 @@ def _locate_spatial_transformer():
 
     # As a last resort perform a brute-force search through sub-modules that
     # are already imported (avoids a costly pkg traversal).
-    for mod in list(sys.modules.values()):  # type: ignore[name-defined]
+    for mod in list(sys.modules.values()):
         if mod is None or not hasattr(mod, "__name__"):
             continue
         if mod.__name__.startswith("diffusers") and hasattr(mod, "SpatialTransformer"):
