@@ -1,0 +1,26 @@
+experiment:
+  name: CSR-CoreBench
+  seeds: [17, 23, 42]
+  batch_size: 8
+  precision: bfloat16
+  sampler:
+    dpm_solver_steps: 50
+    ddim_steps: 20
+    guidance_scale: 4.0
+  csr:
+    compression_ratio: 8
+    codebook: 512
+    router_age_lambda: 0.1
+    entropy_eps: 0.015
+    max_reuse: 8
+  datasets:
+    imagenet_v2:
+      url: http://imagenetv2public.s3-website-us-west-2.amazonaws.com/
+    coco2017:
+      val_images: http://images.cocodataset.org/zips/val2017.zip
+      captions: http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+  models:
+    dit_xl_2_256: https://dl.fbaipublicfiles.com/DiT/models/DiT-XL-2-256x256.pt
+    dit_xl_2_512: https://dl.fbaipublicfiles.com/DiT/models/DiT-XL-2-512x512.pt
+    pixart_base: https://huggingface.co/PixArt-alpha/PixArt-Sigma-XL-2-1024-MS
+  baselines: [vanilla, l2c, dit_fast_attn, faster_diffusion]
