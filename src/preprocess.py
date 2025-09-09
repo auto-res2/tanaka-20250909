@@ -3,8 +3,8 @@ src/preprocess.py – data loading / augmentation utilities
 """
 from __future__ import annotations
 
-import random
 import itertools
+import random
 from pathlib import Path
 from typing import Dict, List
 
@@ -18,6 +18,7 @@ from torch import Tensor
 # unavailable so that the project remains runnable in minimal environments.
 try:
     import webdataset as wds
+
     _WDS_AVAILABLE = True
 except ModuleNotFoundError:  # pragma: no cover – stub fallback
 
@@ -108,6 +109,23 @@ class _RandomLoader:
 #  DATA LOADER FACTORY
 # ---------------------------------------------------------------------------
 
+def _is_dataset_nonempty(loader):
+    """Utility: try fetching a single batch to confirm dataset availability.
+    This avoids WebDataset's runtime failure with an empty shard list. The
+    fetched batch is discarded and the iterator recreated by the caller.
+    """
+
+    try:
+        it = iter(loader)
+        _ = next(it)
+        return True
+    except (StopIteration, ValueError, RuntimeError):
+        return False
+    except Exception:
+        # any unexpected error counts as dataset failure – handled upstream
+        return False
+
+
 def get_loader(name: str, split: str, resolution: int, batch_size: int, *, num_workers: int = 4):
     """Return a WebDataset loader if the required package & shards are
     reachable; otherwise fall back to an in-memory random image generator so
@@ -137,6 +155,11 @@ def get_loader(name: str, split: str, resolution: int, batch_size: int, *, num_w
             ds = ds.map(_vae_encode)
 
         loader = wds.WebLoader(ds, batch_size=batch_size, num_workers=num_workers, pin_memory=True)  # type: ignore[attr-defined]
+
+        # ---------------------- SANITY-CHECK FOR NON-EMPTY DATASET ----------------------
+        if not _is_dataset_nonempty(loader):
+            raise RuntimeError("Dataset has no samples (shards inaccessible).")
+
         return loader
     except Exception as exc:  # pragma: no cover – network / file errors
         # In CI / offline execution we silently fall back to random data but

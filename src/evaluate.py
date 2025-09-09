@@ -44,8 +44,8 @@ def lineplot(x: List[int], yss: List[List[float]], labels: List[str], title: str
 # ---------------------------------------------------------------------------
 
 def save_json(obj: Dict[str, Any], fname: str):
-    """Persist *obj* as JSON inside .research/iteration6/ and echo to stdout."""
-    path = Path(".research/iteration6")
+    """Persist *obj* as JSON inside .research/iteration7/ and echo to stdout."""
+    path = Path(".research/iteration7")
     path.mkdir(parents=True, exist_ok=True)
     with (path / fname).open("w") as f:
         json.dump(obj, f, indent=2)
