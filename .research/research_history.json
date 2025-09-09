@@ -1,0 +1,10 @@
+{
+  "research_topic": "Diffusion Transformersの学習時のメモリ改善",
+  "queries": [
+    "Diffusion Transformer memory",
+    "memory-efficient diffusion",
+    "transformer gradient checkpointing",
+    "sparse attention diffusion",
+    "transformer memory optimization"
+  ]
+}
