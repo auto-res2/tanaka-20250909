@@ -7,21 +7,22 @@ name = "csr-diffusion"
 version = "0.1.0"
 description = "Compressed-State Reuse (CSR) – accelerating Diffusion Transformers"
 requires-python = ">=3.9"
-authors = [{name = "Researcher", email = "research@example.com"}]
-license = {text = "MIT"}
+authors = [{ name = "Researcher", email = "research@example.com" }]
+license = { text = "MIT" }
 
 # ---------------------------------------------------------------------------
-#  Runtime dependencies – aligned with the original single-file script
+#  Runtime dependencies – must be an *array* per PEP 621 / TOML spec.
 # ---------------------------------------------------------------------------
-[project.dependencies]
-torch = "*"
-torchvision = "*"
-diffusers = "*"
-transformers = "*"
-clean-fid = "*"
-scipy = "*"
-matplotlib = "*"
-pyyaml = "*"
-requests = "*"
-tqdm = "*"
-numpy = "*"
+dependencies = [
+    "torch",
+    "torchvision",
+    "diffusers",
+    "transformers",
+    "clean-fid",
+    "scipy",
+    "matplotlib",
+    "pyyaml",
+    "requests",
+    "tqdm",
+    "numpy",
+]

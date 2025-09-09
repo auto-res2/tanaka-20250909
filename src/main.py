@@ -19,17 +19,24 @@ import yaml
 
 # Note: heavy libraries are imported lazily inside the functions that need them
 from src import evaluate as ev
-from src import preprocess as prep
+from src import preprocess as prep  # noqa: F401 – used via public API in config, retained for future extensions
 from src import train as trn
 
 # ---------------------------------------------------------------------------
 #  Directories & configuration
 # ---------------------------------------------------------------------------
 
-_RESEARCH_DIR = pathlib.Path(".research") / "iteration1"
+# All research artefacts for *this* iteration must live under .research/iteration2
+_RESEARCH_DIR = pathlib.Path(".research") / "iteration2"
 _RESEARCH_DIR.mkdir(parents=True, exist_ok=True)
+
+# Images are stored under .research/iteration2/images/…
 _IMAGES_DIR = _RESEARCH_DIR / "images"
 _IMAGES_DIR.mkdir(exist_ok=True, parents=True)
+
+# ---------------------------------------------------------------------------
+#  Configuration
+# ---------------------------------------------------------------------------
 
 _CFG_PATH = pathlib.Path("config") / "config.yaml"
 if not _CFG_PATH.exists():
@@ -43,13 +50,18 @@ EXP_CFG = CFG["experiment"]
 #  Helper to generate images with (optionally) CSR
 # ---------------------------------------------------------------------------
 
-
 def _generate_images(pipe, *, seed: int, num_batches: int, steps: int, use_csr: bool):
+    """Generates *batch_size × num_batches* images using *pipe* under a fixed *seed*."""
+
     import random
 
     import torch
 
-    rnd_state = random.getstate()  # Restore after generation to avoid side-effects per seed
+    # Save & later restore the RNG states to avoid cross-contamination between calls
+    rnd_state = random.getstate()
+    torch_state = torch.random.get_rng_state()
+    cuda_states = {i: torch.cuda.get_rng_state(i) for i in range(torch.cuda.device_count())}
+
     random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
@@ -62,7 +74,15 @@ def _generate_images(pipe, *, seed: int, num_batches: int, steps: int, use_csr: 
         )
         images.extend(out.images)
 
+    # ---------------------------------------------------------------------
+    #  Restore original RNG states so that subsequent calls behave as if
+    #  this function never touched the global generators.
+    # ---------------------------------------------------------------------
     random.setstate(rnd_state)
+    torch.random.set_rng_state(torch_state)
+    for i, state in cuda_states.items():
+        torch.cuda.set_rng_state(state, i)
+
     return images
 
 
@@ -73,7 +93,7 @@ def _generate_images(pipe, *, seed: int, num_batches: int, steps: int, use_csr: 
 def _run_experiment():
     try:
         from diffusers import DPMSolverMultistepScheduler, DiffusionPipeline
-    except ImportError as exc:
+    except ImportError:
         print("Diffusers not installed – unable to run generation; exiting early.")
         sys.exit(0)
 
@@ -98,7 +118,7 @@ def _run_experiment():
         vanilla_imgs = _generate_images(
             pipe,
             seed=seed,
-            num_batches=2,  # <-- reduced for example; real run would use 50k/bs
+            num_batches=2,  # reduced for CI-friendliness; adjust for real runs
             steps=EXP_CFG["sampler"]["dpm_solver_steps"],
             use_csr=False,
         )
@@ -133,8 +153,8 @@ def _run_experiment():
         results.append({"seed": seed, "fid": fid_vanilla, "csr_fid": fid_csr})
 
         # Clean-up to keep disk usage low for the tutorial run
-        shutil.rmtree(_seed_dir)
-        shutil.rmtree(_csr_seed_dir)
+        shutil.rmtree(_seed_dir, ignore_errors=True)
+        shutil.rmtree(_csr_seed_dir, ignore_errors=True)
 
     return results
 
@@ -146,10 +166,11 @@ def _run_experiment():
 def main():  # noqa: D401 – script-style entry-point
     results = _run_experiment()
 
+    # Each experiment result lives in its own JSON file under .research/iteration2/
     result_path = _RESEARCH_DIR / "results.json"
     result_path.write_text(json.dumps(results, indent=2))
 
-    # Print JSON to standard-output so CI / user can inspect quickly
+    # Print JSON to standard-output so CI / users can inspect quickly
     print(result_path.read_text())
 
 
