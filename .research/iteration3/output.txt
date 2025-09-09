@@ -1,0 +1,26 @@
+=== uv sync start Tue Sep  9 03:28:08 AM UTC 2025 ===
+=== uv install end Tue Sep  9 03:29:11 AM UTC 2025 ===
+=== experiment start Tue Sep  9 03:29:11 AM UTC 2025 ===
+
+===== exp1_etth1 =====
+[Data] downloading ETTh1…
+[Trainer] Start training…
+  • epoch 001/3 | loss=2.41465
+  • epoch 002/3 | loss=1.74563
+  • epoch 003/3 | loss=1.65064
+{
+  "MAE": 2.5341092614294256,
+  "MSE": 19.270980420621854
+}
+
+===== exp2_synth =====
+[Trainer] Start training…
+  • epoch 001/2 | loss=20.22360
+  • epoch 002/2 | loss=18.49797
+{
+  "MAE": 17.57045676068562,
+  "MSE": 489.0389054461223
+}
+
+All experiments finished – summary written to .research/iteration3/all_experiments_summary.json
+=== experiment end Tue Sep  9 03:30:22 AM UTC 2025 ===
