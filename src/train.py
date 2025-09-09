@@ -4,6 +4,7 @@ Contains model–related classes and helper utilities for the Compressed-State R
 """
 from __future__ import annotations
 
+import importlib
 import types
 import inspect
 from typing import Dict, Any
@@ -131,6 +132,45 @@ class CSRCacheManager:
 #  Utility to wrap a Diffusers UNet with CSR modules (no retraining required)
 # ---------------------------------------------------------------------------
 
+
+def _locate_spatial_transformer():
+    """Best-effort lookup for the *SpatialTransformer* class inside diffusers.
+
+    The import path of *SpatialTransformer* has moved several times throughout
+    the diffusers release cycle.  In order to stay compatible with a wide range
+    (≥0.20) of versions we try the known locations one by one and return the
+    first hit.  If none are found, we raise *ImportError* clearly instructing
+    the user to upgrade diffusers.
+    """
+
+    candidate_paths = [
+        "diffusers.models.attention_processor",  # ≤0.19
+        "diffusers.models.attention",            # 0.20 – 0.24
+        "diffusers.models.transformer_2d",       # 0.25+
+    ]
+
+    for path in candidate_paths:
+        try:
+            module = importlib.import_module(path)
+        except ImportError:
+            continue
+        if hasattr(module, "SpatialTransformer"):
+            return getattr(module, "SpatialTransformer")
+
+    # As a last resort perform a brute-force search through sub-modules that
+    # are already imported (avoids a costly pkg traversal).
+    for mod in list(sys.modules.values()):  # type: ignore[name-defined]
+        if mod is None or not hasattr(mod, "__name__"):
+            continue
+        if mod.__name__.startswith("diffusers") and hasattr(mod, "SpatialTransformer"):
+            return getattr(mod, "SpatialTransformer")
+
+    raise ImportError(
+        "SpatialTransformer class not found within the installed diffusers package. "
+        "Please upgrade diffusers (>=0.30 recommended)."
+    )
+
+
 def csr_wrap(pipe, *, compression_ratio: int = 8, K_max: int = 8):
     """Inserts CSR encoder/decoder/router after every SpatialTransformer block.
 
@@ -144,9 +184,11 @@ def csr_wrap(pipe, *, compression_ratio: int = 8, K_max: int = 8):
         Maximum number of timesteps a cached state can be reused.
     """
 
-    # Local import to avoid a hard dependency for users who only preprocess.
+    # Dynamically resolve the SpatialTransformer class regardless of diffusers
+    # version.  We *intentionally* defer the import so that this utility can be
+    # used in environments where diffusers is only an optional dependency.
     try:
-        from diffusers.models.attention_processor import SpatialTransformer
+        SpatialTransformer = _locate_spatial_transformer()
     except ImportError as exc:  # pragma: no cover – informative error
         raise ImportError("diffusers >= 0.20 is required for csr_wrap") from exc
 

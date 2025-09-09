@@ -1,4 +1,3 @@
-
 """
 main.py
 Orchestrates the full experimental workflow: preprocessing, model wrapping,
@@ -15,10 +14,10 @@ import pathlib
 import shutil
 import sys
 import inspect
-from typing import List
+from typing import List, Any
 
 import yaml
-import torch  # FIX: ensure torch is available throughout this module
+import torch  # Ensure torch is available throughout this module
 
 # Note: heavy libraries are imported lazily inside the functions that need them
 from src import evaluate as ev
@@ -29,11 +28,11 @@ from src import train as trn
 #  Directories & configuration
 # ---------------------------------------------------------------------------
 
-# All research artefacts for *this* iteration live under .research/iteration4
-_RESEARCH_DIR = pathlib.Path(".research") / "iteration4"
+# All research artefacts for *this* iteration live under .research/iteration5
+_RESEARCH_DIR = pathlib.Path(".research") / "iteration5"
 _RESEARCH_DIR.mkdir(parents=True, exist_ok=True)
 
-# Images are stored under .research/iteration4/images/…
+# Images are stored under .research/iteration5/images/…
 _IMAGES_DIR = _RESEARCH_DIR / "images"
 _IMAGES_DIR.mkdir(exist_ok=True, parents=True)
 
@@ -109,7 +108,7 @@ def _generate_images(pipe, *, seed: int, num_batches: int, steps: int):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
-    images: List[any] = []  # list of PIL.Image
+    images: List[Any] = []  # list of PIL.Image
 
     call_sig = inspect.signature(pipe.__call__).parameters
 
@@ -133,7 +132,6 @@ def _generate_images(pipe, *, seed: int, num_batches: int, steps: int):
     #  this function never touched the global generators.
     # ---------------------------------------------------------------------
     random.setstate(rnd_state)
-    import torch  # re-import for mypy/static checkers – already in scope at runtime
 
     torch.random.set_rng_state(torch_state)
     for i, state in cuda_states.items():
@@ -240,7 +238,7 @@ def _run_experiment():
 def main():  # noqa: D401 – script-style entry-point
     results = _run_experiment()
 
-    # Each experiment result lives in its own JSON file under .research/iteration4/
+    # Each experiment result lives in its own JSON file under .research/iteration5/
     result_path = _RESEARCH_DIR / f"{EXP_CFG['name']}_results.json"
     result_path.write_text(json.dumps(results, indent=2))
 
