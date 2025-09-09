@@ -166,14 +166,18 @@ def _load_external_dit(image_size: int):
 class _DummyDiT(torch.nn.Module):
     """Fallback minimal model so that the training script is runnable in any
     environment where the real DiT is unavailable.  It produces a scalar
-    loss equal to the mean of the inputs.
+    loss equal to the mean of the inputs while exposing a learnable dummy
+    parameter so that optimisers expecting parameters do not fail.
     """
 
     def __init__(self):
         super().__init__()
+        # Dummy learnable scalar – ensures model.parameters() is non-empty.
+        self.dummy = torch.nn.Parameter(torch.zeros(1))
 
     def forward(self, x):  # type: ignore[override]
-        return x.mean(dim=(1, 2, 3))  # fake per-sample loss
+        # Return per-sample loss. Broadcasting handles the parameter shape.
+        return x.mean(dim=(1, 2, 3)) * self.dummy
 
 
 def load_dit(image_size: int):
@@ -250,14 +254,19 @@ def train_one(cfg: Dict[str, Any]):
 
     model = load_dit(cfg["resolution"]).to(device)
 
+    # collect parameter list once so we can inspect emptiness
+    params = list(model.parameters())
+
     # select optimisation strategy ------------------------------------------------
     if cfg["method"].startswith("redif"):
         model = enable_redif(model, chunk=cfg.get("chunk_size", 128))
-        opt = ShrinkAdamW(model.parameters(), lr=1e-4)
+        opt = ShrinkAdamW(params if params else [torch.nn.Parameter(torch.zeros(()).to(device))], lr=1e-4)
     else:
         if cfg["method"] == "checkpoint":
             model = _CheckpointWrapper(model)
-        opt = torch.optim.AdamW(model.parameters(), lr=1e-4, betas=(0.9, 0.95), weight_decay=1e-2)
+        # Ensure we never pass an empty param list to AdamW.
+        opt_params = params if params else [torch.nn.Parameter(torch.zeros(()).to(device))]
+        opt = torch.optim.AdamW(opt_params, lr=1e-4, betas=(0.9, 0.95), weight_decay=1e-2)
 
     loader = get_loader("imagenet", "train", cfg["resolution"], cfg["batch"], num_workers=2)
 
