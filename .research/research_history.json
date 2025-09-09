@@ -687,6 +687,68 @@
       }
     }
   ],
+  "reference_research_study_list": [
+    {
+      "title": "Logistic-normal distributions: Some properties and uses"
+    },
+    {
+      "title": "All are worth words: A vit backbone for diffusion models"
+    },
+    {
+      "title": "Beit: Bert pre-training of image transformers"
+    },
+    {
+      "title": "Large scale gan training for high fidelity natural image synthesis"
+    },
+    {
+      "title": "Condition-aware neural network for controlled image generation"
+    },
+    {
+      "title": "Maskgit: Masked generative image transformer"
+    },
+    {
+      "title": "Pixart-σ: Weak-to-strong training of diffusion transformer for 4k text-to-image generation"
+    },
+    {
+      "title": "Pixart- {\\delta}: Fast and controllable image generation with latent consistency models"
+    },
+    {
+      "title": "Pixart-α: Fast training of diffusion transformer for photorealistic text-to-image synthesis"
+    },
+    {
+      "title": "On the importance of noise scheduling for diffusion models"
+    },
+    {
+      "title": "Improved baselines with momentum contrastive learning"
+    },
+    {
+      "title": "Generative adversarial networks: An overview"
+    },
+    {
+      "title": "Imagenet: A large-scale hierarchical image database"
+    },
+    {
+      "title": "Diffusion models beat gans on image synthesis"
+    },
+    {
+      "title": "An image is worth 16x16 words: Transformers for image recognition at scale"
+    },
+    {
+      "title": "Scaling rectified flow transformers for high-resolution image synthesis"
+    },
+    {
+      "title": "Lumina-t2x: Transforming text into any modality, resolution, and duration via flow-based large diffusion transformers"
+    },
+    {
+      "title": "Masked diffusion transformer is a strong image synthesizer"
+    },
+    {
+      "title": "Generative adversarial networks"
+    },
+    {
+      "title": "Efficient diffusion training via min-snr weighting strategy"
+    }
+  ],
   "new_method": {
     "method": "Open Problems: Most reuse-based inference accelerators for Diffusion Transformers (e.g. Learning-to-Cache, AST in DiTFastAttn, Faster Diffusion) cannot cache features for more than one adjacent denoising step because raw hidden-state tensors are large (hundreds of MB). When the cache is kept longer, GPU memory explodes, so present methods are forced to clear the cache every other step and the theoretical speed-up ceiling stays at ≈2×. A key unsolved problem is therefore: ‘How can we reuse computations across many (>2) timesteps without increasing VRAM, while preserving synthesis quality?’ Solving this would immediately multiply the practical speed-up of all transformer-based diffusion models and make high-resolution or video generation far cheaper.\nMethods: Compressed-State Reuse (CSR). 1) Lightweight State Encoder: insert (post-training, no re-training of backbone) a tiny per-layer bottleneck (e.g. 1×1 depthwise conv + vector-quantised codebook) after each attention/MLP sub-layer. It compresses the hidden feature into 1/8–1/16 the original size (both spatially and in channels). 2) State Decoder: symmetric lightweight decoder reconstructs the feature when reused. Encoder/decoder parameters are learned on a frozen backbone using feature-distillation loss only; image data are not required. 3) Multi-step Router: extend L2C’s sigmoid βij but operate on compressed states; train it to decide ‘reuse for K steps’ (K∈{1..5}) instead of binary reuse. A differentiable ageing-penalty in the loss encourages longer reuse when error is low. 4) Cache Manager: compressed tensors are stored; their small size allows keeping 4–8 past steps in memory (<1.2 GB for DiT-XL at 256²). When a layer is set to reuse, decoder reconstructs it; otherwise fresh computation overwrites the cache. 5) Entropy-aware Scheduling: during sampling, if reconstruction error measured on-the-fly exceeds a threshold, the router may fall back to computation, guaranteeing quality. 6) Plug-and-Play: CSR adds <1 % extra FLOPs and can wrap any pre-trained DiT/U-ViT/SDXL UNet without architecture change.\nExperimental Setup: Models: DiT-XL/2 and U-ViT-H/2 on ImageNet-256 & ‑512; PixArt-Sigma-Base on MS-COCO 1024×1024.  Sampling: 50-step DPM-Solver and 20-step DDIM.  Baselines: Original model, L2C (cache-2-step), DiTFastAttn (WA-RS+AST), FasterDiffusion (encoder propagation).  Metrics: • FID-50k / sFID, IS, Precision/Recall.  • Latency (A100, batch = 8).  • Peak VRAM.  • MACs per image.  • Quality-vs-Speed curve when varying maximum reuse length K.  Ablations: (a) different compression ratios; (b) learned vs static router; (c) effect of entropy-aware fallback.  Robustness: evaluate on 2 K×2 K images and short video denoising (Open-Sora 8-frames) to test temporal error accumulation.\nExpected Result: CSR reaches 3.5–4.2× wall-clock speed-up and 3.8× FLOPs reduction over the full model, doubling the best prior art. Peak VRAM equals or is lower than the original thanks to compressed tensors (<15 GB for 512² with batch = 8). FID degradation ≤0.04 on ImageNet-256 and ≤0.08 on 1024² COCO; quality remains stable up to 8 reuse steps with entropy fallback. Ablations show compression ratio 8× gives optimal trade-off; disabling router ageing increases FID by >0.2. On video, CSR keeps per-frame FID within 0.1 of baseline.\nExpected Conclusion: Compressed-State Reuse breaks the long-standing 2× speed barrier of reuse-based accelerators by introducing learned feature compression that makes multi-step caching memory-feasible. The method is architecture-agnostic, training-free for the generator, and orthogonal to token pruning, quantisation or fast ODE solvers, so it can stack with them for further gains. Practically, CSR enables real-time 512² image generation and significantly cheaper high-resolution or video diffusion. Academically, it opens a new line of research on learned intermediate-state compression for iterative generative models, with future work exploring joint optimisation with sampler schedules and extending to text/CLIP token caches.",
     "experimental_design": {
