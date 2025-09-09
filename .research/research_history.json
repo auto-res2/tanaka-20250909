@@ -518,6 +518,68 @@
       "title": "Crossformer: Transformer Utilizing Cross-Dimension Dependency for Multivariate Time Series Forecasting"
     }
   ],
+  "reference_research_study_list": [
+    {
+      "title": "An algorithmic theory of learning: Robust concepts and random projection"
+    },
+    {
+      "title": "Longformer: The long-document transformer"
+    },
+    {
+      "title": "Some recent advances in forecasting and control"
+    },
+    {
+      "title": "Distribution of residual autocorrelations in autoregressive-integrated moving average time series models"
+    },
+    {
+      "title": "Rethinking attention with performers"
+    },
+    {
+      "title": "Empirical evaluation of gated recurrent neural networks on sequence modeling"
+    },
+    {
+      "title": "Stl: A seasonal-trend decomposition"
+    },
+    {
+      "title": "BERT: pre-training of deep bidirectional transformers for language understanding"
+    },
+    {
+      "title": "An image is worth 16x16 words: Transformers for image recognition at scale"
+    },
+    {
+      "title": "Relative-error CUR matrix decompositions"
+    },
+    {
+      "title": "Deepar: Probabilistic forecasting with autoregressive recurrent networks"
+    },
+    {
+      "title": "Multiwavelet-based operator learning for differential equations"
+    },
+    {
+      "title": "Long Short-Term Memory"
+    },
+    {
+      "title": "An autocorrelation-based lstm-autoencoder for anomaly detection on time-series data"
+    },
+    {
+      "title": "Extensions of lipschitz mappings into hilbert space"
+    },
+    {
+      "title": "Adam: A Method for Stochastic Optimization"
+    },
+    {
+      "title": "Reformer: The efficient transformer"
+    },
+    {
+      "title": "Modeling long-and short-term temporal patterns with deep neural networks"
+    },
+    {
+      "title": "Enhancing the locality and breaking the memory bottleneck of transformer on time series forecasting"
+    },
+    {
+      "title": "Fourier neural operator for parametric partial differential equations"
+    }
+  ],
   "new_method": {
     "method": "Open Problems: 1. Existing Transformer models treat the axes (time-steps, variates, spectral bins, scales) mostly in isolation; no single architecture jointly models (a) very-long temporal context, (b) inter-variate interactions, (c) abrupt non-stationary regime shifts, and (d) dynamic relevance of frequency bands.\n2. Current multi-scale solutions (Pathformer, Scaleformer, FEDformer) use fixed or randomly sampled scales; they cannot instantly adapt when the dominant scale of the signal changes (e.g., during faults or concept drift).\n3. De-stationarization techniques re-inject global statistics but ignore local change points, causing information loss around structural breaks.\n4. Models that invert dimensions (iTransformer) lack explicit temporal locality, while patch-based models (PatchTST) ignore cross-variate semantics.\n5. There is no principled mechanism to quantify uncertainty or novelty when the signal suddenly exhibits unseen frequency/scale patterns.\nThe proposed research addresses all five gaps.\nMethods: We propose CHANGEFORMER — a Change-Aware Hierarchical Adaptive Neo-Generative Transformer.\nKey components:\nA. Variate-as-Token & Time-as-Patch dual embedding. For each mini-batch we build (i) variate tokens a la iTransformer for global inter-variate relations and (ii) temporal patch tokens (as in PatchTST) for local temporal details. Two light cross-attention bridges fuse both spaces.\nB. Online Change-Point Detector (OCPD) layer. A lightweight 1-D CNN with learnable kernels predicts per-patch change-point probability p_cp. p_cp gates the contribution of (C) and controls the statistics used in (D).\nC. Adaptive Spectro-Temporal Router (ASTR). Similar to Pathformer but with frequency-aware experts. Given p_cp and short-term STFT of the patch, a router selects K experts from:\n   • Time-domain expert (local MHA)\n   • Fourier expert (FEDformer-style)\n   • Wavelet expert (MultiWavelet)\n   • Linear expert (DLinear)\n   • Memory expert (Spectral Attention EMA)\nD. Localized De-Stationary Attention (LDSA). Instead of global mean/std, statistics are recomputed inside segments bounded by detected change-points. Two MLPs output τ, Δ for each segment; LDSA scales/shifts QK^T only inside its segment, thus preserving abrupt shifts.\nE. Progressive Cross-Scale Refinement. Predictions are iteratively refined from coarse→fine scales (Scaleformer idea) but the scale list is chosen on-the-fly from the energy distribution of the recent STFT, not fixed powers of two.\nF. Uncertainty Head. During training, Monte-Carlo dropout + spectral energy entropy are fed to an auxiliary head to predict variance; at inference we output both forecast and confidence, enabling anomaly scoring.\nTraining uses two losses: L1 forecast loss + KL divergence between successive scale predictions (encourages consistency).\nExperimental Setup: Datasets: ETTh1/2, ETTm1/2, Weather, Traffic, Electricity, Exchange, ILI, and the high-dimensional Solar-Energy (137 vars).  Input length 96/192/336/720; horizons same as prior work.\nBaselines: Pathformer, FEDformer, Scaleformer, Non-stationary Transformer, iTransformer, PatchTST, TimesNet.\nMetrics: MAE/MSE for forecasting; NLL for uncertainty; F1 for anomaly detection on NAB-like splits.\nAblations: (i) remove OCPD, (ii) fixed-scale router, (iii) replace LDSA with RevIN, (iv) drop uncertainty head, (v) variate-only vs patch-only tokens.\nEfficiency tests: measure GPU memory and inference latency on sequences up to 4096.\nImplementation: PyTorch 2.0, mixed precision, A100 80 GB.\nExpected Result: 1. 5-10% relative MAE/MSE improvement over best baseline on all horizons; largest gain (≈15-18%) on datasets with known regime shifts (Exchange, Traffic).\n2. Calibration error (ECE) halves compared to DeepEnsemble-PatchTST; uncertainty reliably flags 90% of top-5% worst errors.\n3. Ablation shows OCPD+LDSA responsible for ~60% of the gain on non-stationary datasets; ASTR adds ~30% on periodic datasets; dual-token architecture improves multivariate datasets (>100 vars) by ~12%.\n4. Memory footprint remains within 1.3× of iTransformer; latency < 1.5× FEDformer for 720-step horizon.\nExpected Conclusion: CHANGEFORMER demonstrates that dynamically combining spectro-temporal experts, guided by on-the-fly change-point detection and localized de-stationarization, produces a single robust architecture for long-horizon time-series forecasting, uncertainty estimation, and anomaly detection. The study highlights the importance of simultaneously modeling variate, temporal, frequency, and scale dimensions and suggests a path toward adaptive, dependable Transformer backbones for real-world non-stationary signals.",
     "experimental_design": {
