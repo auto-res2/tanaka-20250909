@@ -1,0 +1,31 @@
+# config/config.yaml – centralised experiment settings
+seed: 42
+input_length: 96
+horizon: 96
+batch_size: 32
+lr: 0.0003
+weight_decay: 0.01
+grad_clip: 1.0
+train_pct: 0.7
+val_pct: 0.2
+
+experiments:
+  exp1_etth1:
+    seed: 11
+    dataset: ETTh1
+    model: ChangeFormer
+    epochs: 3
+    input_length: 96
+    horizon: 96
+    batch_size: 16
+    lr: 0.0003
+
+  exp2_synth:
+    seed: 22
+    dataset: SyntheticShift
+    model: ChangeFormer
+    epochs: 2
+    input_length: 96
+    horizon: 96
+    batch_size: 32
+    lr: 0.0003

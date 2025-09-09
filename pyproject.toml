@@ -1,1 +1,21 @@
-# Please list the required python packages.
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "changeformer-research"
+version = "0.1.0"
+description = "Refactored research code for CHANGEFORMER experiments"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "Researcher", email = "research@example.com"}]
+readme = "README.md"
+keywords = ["time-series", "transformer", "ML", "research"]
+
+[project.dependencies]
+numpy = "*"
+pandas = "*"
+pyyaml = "*"
+torch = "*"
+matplotlib = "*"
+requests = "*"
