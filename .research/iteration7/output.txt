@@ -1,0 +1,8 @@
+=== uv sync start Tue Sep  9 10:03:02 AM UTC 2025 ===
+=== uv install end Tue Sep  9 10:04:06 AM UTC 2025 ===
+=== experiment start Tue Sep  9 10:04:06 AM UTC 2025 ===
+=============== ReDiF-T  EXPERIMENT SUITE =================
+[preprocess] Warning – falling back to synthetic data: Dataset has no samples (shards inaccessible).
+[preprocess] Warning – falling back to synthetic data: Dataset has no samples (shards inaccessible).
+[preprocess] Warning – falling back to synthetic data: Dataset has no samples (shards inaccessible).
+[preprocess] Warning – falling back to synthetic data: Dataset has no samples (shards inaccessible).
