@@ -58,7 +58,6 @@ except Exception:  # pragma: no cover – best-effort patch, safe to ignore
 # 1.  Utility – disable interactive OGB download prompt
 # -----------------------------------------------------------------------------
 
-
 def _disable_ogb_prompt():
     """Monkey-patch OGB’s download prompt so that it never requires stdin."""
 
@@ -107,7 +106,17 @@ def load_dataset(name: str = "ogbn-products"):
         mask[idx] = True
         setattr(data, f"{key}_mask", mask)
 
-    # Normalise features & cast to half precision (saves memory)
-    data.x = F.layer_norm(data.x.float(), (data.x.size(-1),)).half()
+    # ------------------------------------------------------------------
+    # Feature normalisation & dtype selection
+    # ------------------------------------------------------------------
+    # Always normalise to zero-mean, unit-variance.  For CUDA-enabled devices we
+    # cast to `half` in order to save memory.  On CPU, many ops (in particular
+    # `torch.nn.Linear`) do NOT support FP16 – therefore we keep features in
+    # FP32 when CUDA is unavailable.
+    # ------------------------------------------------------------------
+    data.x = F.layer_norm(data.x.float(), (data.x.size(-1),))
+    if torch.cuda.is_available():
+        data.x = data.x.half()
+
     data.y = data.y.squeeze(-1).long()  # shape: [N]
     return data, dataset.num_classes

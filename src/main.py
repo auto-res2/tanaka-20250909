@@ -33,8 +33,9 @@ with open(CFG_PATH, "r", encoding="utf-8") as fp:
 # 2.  Utility helpers
 # -----------------------------------------------------------------------------
 
-
-RESEARCH_ROOT = Path(".research/iteration8")
+# NOTE:  Research artefacts are now persisted under the *iteration9* folder as
+# mandated by the automated evaluation harness.
+RESEARCH_ROOT = Path(".research/iteration9")
 IMG_DIR = RESEARCH_ROOT / "images"
 JSON_DIR = RESEARCH_ROOT
 
@@ -122,7 +123,7 @@ def run():
     # mandatory STDOUT for verification
     print("\n=== Implementation Verification ===")
     print("Passed" if verify_implementation() else "Failed")
-    print("\n=== Results (also saved to .research/iteration8) ===")
+    print("\n=== Results (also saved to .research/iteration9) ===")
     print(json.dumps(result, indent=2))
 
 
