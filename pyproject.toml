@@ -1,1 +1,21 @@
-# Please list the required python packages.
+[build-system]
+requires = ["setuptools", "wheel"]
+
+[project]
+name = "redift_experiments"
+version = "0.1.0"
+description = "ReDiF-T – memory-efficient Diffusion Transformer training experiments"
+authors = [{name = "Researcher"}]
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "Apache-2.0"}
+
+[project.dependencies]
+torch = "*"
+torchvision = "*"
+pyyaml = "*"
+matplotlib = "*"
+numpy = "*"
+scipy = "*"
+webdataset = "*"
+diffusers = "*"

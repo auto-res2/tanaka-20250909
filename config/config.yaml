@@ -1,0 +1,68 @@
+# ======================== DATASETS =========================
+datasets:
+  imagenet:
+    url:
+      train: "https://storage.googleapis.com/imagenet-object-localization-challenge/ILSVRC2012_img_train.tar"
+      val:   "https://storage.googleapis.com/imagenet-object-localization-challenge/ILSVRC2012_img_val.tar"
+    type: webdataset
+    preprocessing:
+      - decode: jpg
+      - random_resized_crop: {short_side: ${resolution}, interpolation: bicubic}
+      - random_hflip: {p: 0.5}
+      - vae_encode: true
+  laion_hq:
+    url: "https://huggingface.co/datasets/laion/laion-high-resolution"
+    type: webdataset
+    filter: {min_resolution: 4096}
+    preprocessing:
+      - center_crop: {size: 4096}
+      - rotation: {p: 0.2}
+      - vae_encode: true
+  coco_4k:
+    url:
+      images: "http://images.cocodataset.org/zips/val2017.zip"
+      annotations: "http://images.cocodataset.org/annotations/annotations_trainval2017.zip"
+    type: webdataset
+    preprocessing:
+      - resize: {size: 4096}
+      - vae_encode: true
+
+# ======================== MODELS ===========================
+models:
+  dit_xl_2:
+    repo: "facebookresearch/DiT"
+    checkpoint:
+      256: "https://dl.fbaipublicfiles.com/DiT/models/DiT-XL-2-256x256.pt"
+      512: "https://dl.fbaipublicfiles.com/DiT/models/DiT-XL-2-512x512.pt"
+    params: {depth: 56, width: 1536, heads: 32}
+  pixart_sigma_xl:
+    repo: "PixArt-alpha/PixArt-sigma"
+    checkpoint: "https://huggingface.co/PixArt-alpha/PixArt-Sigma-XL-2-512-MS"
+
+# ==================== EXPERIMENTS ==========================
+experiments:
+  exp1_scaling:
+    description: "Memory-throughput scaling curve (single-GPU)"
+    seeds: [11, 17, 23]
+    hardware: {gpus: 1}
+    grid:
+      resolution: [256, 512, 768, 1024, 1280, 1536]
+      method: [baseline, checkpoint, redift, ablation1, ablation2, ablation3]
+  exp2_quality:
+    description: "Quality & convergence under fixed compute budget"
+    seeds: [7, 14, 21]
+    hardware: {gpus: 4}
+    resolution: 512
+    total_flops: 6.8e15
+    configs:
+      - {method: checkpoint, global_batch: 1024, steps: 400000}
+      - {method: redift,     global_batch: 2048, steps: 200000}
+  exp3_4k:
+    description: "4K fine-tuning with PixArt-Sigma-XL"
+    seed: 42
+    hardware: {gpus: 8}
+    model: pixart_sigma_xl
+    resolution: 4096
+    method: redift
+    chunk_size: 256
+    dataset: laion_hq
