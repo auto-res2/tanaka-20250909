@@ -1,21 +1,27 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "redift_experiments"
 version = "0.1.0"
 description = "ReDiF-T – memory-efficient Diffusion Transformer training experiments"
-authors = [{name = "Researcher"}]
+authors = [{ name = "Researcher" }]
 readme = "README.md"
 requires-python = ">=3.9"
-license = {text = "Apache-2.0"}
+license = { text = "Apache-2.0" }
 
-[project.dependencies]
-torch = "*"
-torchvision = "*"
-pyyaml = "*"
-matplotlib = "*"
-numpy = "*"
-scipy = "*"
-webdataset = "*"
-diffusers = "*"
+# ---------------------------------------------------------------------------
+#  Runtime dependencies (as a list, not a table – PEP 621 compliant)
+# ---------------------------------------------------------------------------
+dependencies = [
+    "torch",
+    "torchvision",
+    "pyyaml",
+    "matplotlib",
+    "numpy",
+    "scipy",
+    "webdataset",
+    "diffusers",
+]
+

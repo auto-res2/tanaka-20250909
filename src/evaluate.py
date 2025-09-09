@@ -1,12 +1,12 @@
+from __future__ import annotations
+
 """
 src/evaluate.py – lightweight metric & analysis helpers
 """
-from __future__ import annotations
-
-import json
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+import json
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -44,7 +44,8 @@ def lineplot(x: List[int], yss: List[List[float]], labels: List[str], title: str
 # ---------------------------------------------------------------------------
 
 def save_json(obj: Dict[str, Any], fname: str):
-    path = Path(".research/iteration1")
+    """Persist *obj* as JSON inside .research/iteration2/ and echo to stdout."""
+    path = Path(".research/iteration2")
     path.mkdir(parents=True, exist_ok=True)
     with (path / fname).open("w") as f:
         json.dump(obj, f, indent=2)
