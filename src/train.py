@@ -198,6 +198,18 @@ def csr_wrap(pipe, *, compression_ratio: int = 8, K_max: int = 8):
         Maximum number of timesteps a cached state can be reused.
     """
 
+    # ------------------------------------------------------------------
+    #  Graceful bailout – Some pipelines (e.g. DiT) do not expose a `unet`.
+    # ------------------------------------------------------------------
+    if not hasattr(pipe, "unet"):
+        # We still return *something* so the caller can keep going – but we
+        # clearly communicate that CSR instrumentation is skipped.
+        print(
+            "[INFO] csr_wrap: Pipeline has no attribute 'unet'. "
+            "CSR instrumentation skipped for this model type."
+        )
+        return pipe
+
     # Dynamically resolve the SpatialTransformer class regardless of diffusers
     # version.  We *intentionally* defer the import so that this utility can be
     # used in environments where diffusers is only an optional dependency.
@@ -210,11 +222,11 @@ def csr_wrap(pipe, *, compression_ratio: int = 8, K_max: int = 8):
         SpatialTransformer = _discover_from_unet(pipe.unet)
 
     if SpatialTransformer is None:
-        raise ImportError(
-            "Unable to locate SpatialTransformer class inside diffusers – "
-            "please upgrade diffusers (>=0.30) or open an issue with the new "
-            "import path."
+        print(
+            "[WARN] csr_wrap: Unable to locate SpatialTransformer class. "
+            "CSR instrumentation skipped."
         )
+        return pipe
 
     cache_mgr = CSRCacheManager(K_max)
     device = pipe.device if hasattr(pipe, "device") else torch.device("cpu")
@@ -222,11 +234,11 @@ def csr_wrap(pipe, *, compression_ratio: int = 8, K_max: int = 8):
     for name, module in pipe.unet.named_modules():
         if isinstance(module, SpatialTransformer):
             # Some SpatialTransformer impls expose `norm` differently; fall back safely.
-            in_ch = getattr(module, "norm", None)
-            if in_ch is None or not hasattr(in_ch, "out_channels"):
+            in_ch_attr = getattr(module, "norm", None)
+            if in_ch_attr is None or not hasattr(in_ch_attr, "out_channels"):
                 # Skip modules we cannot confidently handle.
                 continue
-            in_ch = in_ch.out_channels  # type: ignore[attr-defined]
+            in_ch = in_ch_attr.out_channels  # type: ignore[attr-defined]
 
             enc = CSREncoder(in_ch, compression_ratio).to(device)
             dec = CSRDecoder(in_ch, compression_ratio).to(device)
