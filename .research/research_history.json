@@ -6,5 +6,82 @@
     "Fast diffusion sampling",
     "Pruned diffusion transformer",
     "Quantized diffusion transformer"
+  ],
+  "research_study_list": [
+    {
+      "title": "FasterDiT: Towards Faster Diffusion Transformers Training without Architecture Modification"
+    },
+    {
+      "title": "Learning-to-Cache: Accelerating Diffusion Transformer via Layer Caching"
+    },
+    {
+      "title": "DiTFastAttn: Attention Compression for Diffusion Transformer Models"
+    },
+    {
+      "title": "Faster Diffusion: Rethinking the Role of the Encoder for Diffusion Model Inference"
+    },
+    {
+      "title": "A Simple Early Exiting Framework for Accelerated Sampling in Diffusion Models"
+    },
+    {
+      "title": "EDT: An Efficient Diffusion Transformer Framework Inspired by Human-like Sketching"
+    },
+    {
+      "title": "EfficientDM: Efficient Quantization-Aware Fine-Tuning of Low-Bit Diffusion Models"
+    },
+    {
+      "title": "Learning-to-Cache: Accelerating Diffusion Transformer via Layer Caching"
+    },
+    {
+      "title": "U-DiTs: Downsample Tokens in U-Shaped Diffusion Transformers"
+    },
+    {
+      "title": "DiTFastAttn: Attention Compression for Diffusion Transformer Models"
+    },
+    {
+      "title": "Multistep Distillation of Diffusion Models via Moment Matching"
+    },
+    {
+      "title": "A Simple Early Exiting Framework for Accelerated Sampling in Diffusion Models"
+    },
+    {
+      "title": "Fast ODE-based Sampling for Diffusion Models in Around 5 Steps"
+    },
+    {
+      "title": "Reverse Transition Kernel: A Flexible Framework to Accelerate Diffusion Inference"
+    },
+    {
+      "title": "Semi-Implicit Denoising Diffusion Models (SIDDMs)"
+    },
+    {
+      "title": "Structural Pruning for Diffusion Models"
+    },
+    {
+      "title": "DiP-GO: A Diffusion Pruner via Few-step Gradient Optimization"
+    },
+    {
+      "title": "Attention-Driven Training-Free Efficiency Enhancement of Diffusion Models"
+    },
+    {
+      "title": "PTQ4DiT: Post-training Quantization for Diffusion Transformers"
+    },
+    {
+      "title": "Learning-to-Cache: Accelerating Diffusion Transformer via Layer Caching"
+    },
+    {
+      "title": "Temporal Dynamic Quantization for Diffusion Models"
+    },
+    {
+      "title": "PTQ4DiT: Post-training Quantization for Diffusion Transformers"
+    },
+    {
+      "title": "PTQD: Accurate Post-Training Quantization for Diffusion Models"
+    },
+    {
+      "title": "BitsFusion: 1.99 bits Weight Quantization of Diffusion Model"
+    },
+    {
+      "title": "Towards Accurate Post-training Quantization for Diffusion Models"
+    }
   ]
 }
