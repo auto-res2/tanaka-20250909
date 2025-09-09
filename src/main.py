@@ -1,3 +1,4 @@
+
 """
 main.py
 Orchestrates the full experimental workflow: preprocessing, model wrapping,
@@ -17,6 +18,7 @@ import inspect
 from typing import List
 
 import yaml
+import torch  # FIX: ensure torch is available throughout this module
 
 # Note: heavy libraries are imported lazily inside the functions that need them
 from src import evaluate as ev
@@ -27,11 +29,11 @@ from src import train as trn
 #  Directories & configuration
 # ---------------------------------------------------------------------------
 
-# All research artefacts for *this* iteration live under .research/iteration3
-_RESEARCH_DIR = pathlib.Path(".research") / "iteration3"
+# All research artefacts for *this* iteration live under .research/iteration4
+_RESEARCH_DIR = pathlib.Path(".research") / "iteration4"
 _RESEARCH_DIR.mkdir(parents=True, exist_ok=True)
 
-# Images are stored under .research/iteration3/images/…
+# Images are stored under .research/iteration4/images/…
 _IMAGES_DIR = _RESEARCH_DIR / "images"
 _IMAGES_DIR.mkdir(exist_ok=True, parents=True)
 
@@ -238,7 +240,7 @@ def _run_experiment():
 def main():  # noqa: D401 – script-style entry-point
     results = _run_experiment()
 
-    # Each experiment result lives in its own JSON file under .research/iteration3/
+    # Each experiment result lives in its own JSON file under .research/iteration4/
     result_path = _RESEARCH_DIR / f"{EXP_CFG['name']}_results.json"
     result_path.write_text(json.dumps(results, indent=2))
 
