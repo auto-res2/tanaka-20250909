@@ -1,0 +1,12 @@
+error: Failed to parse: `pyproject.toml`
+  Caused by: TOML parse error at line 13, column 1
+   |
+13 | [project.dependencies]
+   | ^^^^^^^^^^^^^^^^^^^^^^
+invalid type: map, expected a sequence
+error: Failed to parse: `pyproject.toml`
+  Caused by: TOML parse error at line 13, column 1
+   |
+13 | [project.dependencies]
+   | ^^^^^^^^^^^^^^^^^^^^^^
+invalid type: map, expected a sequence
