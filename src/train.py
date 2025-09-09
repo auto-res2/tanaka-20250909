@@ -5,6 +5,7 @@ Contains model–related classes and helper utilities for the Compressed-State R
 from __future__ import annotations
 
 import types
+import inspect
 from typing import Dict, Any
 
 import torch
@@ -15,7 +16,7 @@ import torch.nn as nn
 # ---------------------------------------------------------------------------
 
 class CSREncoder(nn.Module):
-    """1×1 depth-wise convolution followed by vector-quantisation.
+    """1×1 point-wise convolution followed by vector-quantisation.
 
     Parameters
     ----------
@@ -31,7 +32,8 @@ class CSREncoder(nn.Module):
         super().__init__()
         if in_ch % compression_ratio != 0:
             raise ValueError("in_ch must be divisible by compression_ratio")
-        self.conv = nn.Conv2d(in_ch, in_ch // compression_ratio, kernel_size=1, groups=in_ch)
+        # Point-wise (1×1) convolution for channel reduction – *not* depth-wise.
+        self.conv = nn.Conv2d(in_ch, in_ch // compression_ratio, kernel_size=1, groups=1)
         self.codebook_size = codebook_size
         self.codebook_dim = in_ch // compression_ratio
         self.codebook = nn.Embedding(codebook_size, self.codebook_dim)
@@ -64,7 +66,8 @@ class CSRDecoder(nn.Module):
         super().__init__()
         if out_ch % compression_ratio != 0:
             raise ValueError("out_ch must be divisible by compression_ratio")
-        self.deconv = nn.Conv2d(out_ch // compression_ratio, out_ch, kernel_size=1, groups=out_ch // compression_ratio)
+        # Inverse of the encoder – expand channels back via 1×1 conv.
+        self.deconv = nn.Conv2d(out_ch // compression_ratio, out_ch, kernel_size=1, groups=1)
 
     def forward(self, z_q: torch.Tensor):  # noqa: D401 – signature mirrored for clarity
         return self.deconv(z_q)
@@ -157,12 +160,26 @@ def csr_wrap(pipe, *, compression_ratio: int = 8, K_max: int = 8):
             dec = CSRDecoder(in_ch, compression_ratio).to(device)
             router = CSRRouter(in_ch, K_max).to(device)
 
+            # Store for optional introspection/debugging.
             module.__dict__["_csr_components"] = {"enc": enc, "dec": dec, "router": router}
             original_forward = module.forward  # noqa: B008 – we preserve the bound method
 
-            def _forward(self, hidden_states: torch.Tensor, *args, **kwargs):  # noqa: ANN001
+            # -----------------------------------------------------------------
+            #  Patched forward pass – captures *unique* refs via default args to
+            #  avoid late-binding pitfalls inside Python closures.
+            # -----------------------------------------------------------------
+            def _forward(
+                self,
+                hidden_states: torch.Tensor,
+                *args,
+                _orig_fwd=original_forward,
+                _enc=enc,
+                _dec=dec,
+                _layer_name=name,
+                **kwargs,
+            ):  # noqa: ANN001
                 timestep = int(kwargs.get("timestep", 0))
-                key = f"{name}"
+                key = _layer_name
 
                 # 1) Attempt reuse if present in cache.
                 cached = cache_mgr.get(key, timestep)
@@ -171,9 +188,9 @@ def csr_wrap(pipe, *, compression_ratio: int = 8, K_max: int = 8):
 
                 # 2) Otherwise compress → compute original → store reconstructed state.
                 with torch.no_grad():
-                    z_q, _ = enc(hidden_states.detach())
-                    rec = dec(z_q)
-                out = original_forward(hidden_states, *args, **kwargs)
+                    z_q, _ = _enc(hidden_states.detach())
+                    rec = _dec(z_q)
+                out = _orig_fwd(hidden_states, *args, **kwargs)
                 cache_mgr.put(key, timestep, rec)
                 return out
 
