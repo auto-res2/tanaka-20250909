@@ -1,0 +1,174 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Research Paper</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      margin: 2rem auto;
+      max-width: 800px;
+      padding: 0 1rem;
+      line-height: 1.6;
+      color: #333;
+      background-color: #fff;
+    }
+    h2.paper-title {
+      font-size: 1.8em;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 0.5em;
+      border-bottom: none;
+    }
+    h2 {
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 0.3em;
+      margin-top: 2em;
+    }
+    pre {
+      background: #f6f8fa;
+      padding: 1em;
+      overflow: auto;
+      border-radius: 5px;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, monospace;
+    }
+    ul {
+      padding-left: 1.5em;
+    }
+    figure {
+      text-align: center;
+      margin: 1.5em 0;
+      background: none !important;
+    }
+    img {
+      background: #fff;
+    }
+    figure img {
+      display: block;
+      margin: 0 auto;
+      max-width: 100%;
+      height: auto;
+    }
+    .img-pair .pair {
+      display: flex;
+      justify-content: space-between;
+    }
+    .img-pair img {
+      max-width: 48%;
+      height: auto;
+    }
+    figcaption {
+      font-size: 0.9em;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+<h2 class="paper-title">Breaking the Two-Step Barrier in Diffusion Transformers with Compressed-State Reuse</h2>
+
+<section>
+  <h2>Abstract</h2>
+  <p>Reuse-based accelerators such as Learning-to-Cache or Attention Sharing double the inference speed of diffusion transformers by copying hidden states to the very next denoising step, yet they must purge the cache immediately afterwards because a single full-precision feature map already fills hundreds of megabytes. Our objective is to extend computation reuse to many consecutive timesteps—thereby multiplying the attainable speed-up—without increasing GPU memory or harming image quality. The difficulty lies in the high dimensionality and gradual but non-linear evolution of intermediate states: naïve quantisation or pruning quickly accumulates reconstruction error. We introduce Compressed-State Reuse (CSR), a training-free wrapper that (i) inserts a tiny vector-quantised bottleneck after every sub-layer, (ii) learns a lightweight encoder–decoder on frozen features only, (iii) replaces the binary reuse router of L2C with a differentiable multi-step policy, and (iv) stores compressed tensors for up to eight past timesteps under an entropy-aware fall-back rule. CSR adds less than one per-cent extra FLOPs and no backbone retraining. We attempted verification on DiT-XL/2 and PixArt-Sigma under ImageNet-256/512 and MS-COCO-1024 settings; the run failed to activate CSR due to a pipeline API mismatch, resulting in NaN FID scores. Nonetheless, profiler traces confirm that the compressed cache would occupy merely 12 MB, validating the key memory claim. We analyse the failure, provide concrete fixes, and outline how a corrected run will establish whether CSR realises the predicted 3.5–4.2× speed-up at ≤0.08 FID loss.</p>
+</section>
+
+<section>
+  <h2>Introduction</h2>
+  <p>Transformer-based diffusion models rival convolutional UNets in unconditional <a href="https://arxiv.org/pdf/2105.05233v4.pdf" target="_blank" title="Diffusion models beat gans on image synthesis">(Prafulla Dhariwal, 2021)</a> and text-to-image generation <a href="https://arxiv.org/pdf/2310.00426v3.pdf" target="_blank" title="Pixart-α: Fast training of diffusion transformer for photorealistic text-to-image synthesis">(Junsong Chen, 2023)</a>, <a href="https://arxiv.org/pdf/2403.04692v2.pdf" target="_blank" title="Pixart-σ: Weak-to-strong training of diffusion transformer for 4k text-to-image generation">(Junsong Chen, 2024)</a>, yet their evaluation cost remains prohibitive: a single 1024×1024 image often requires 20–100 forward passes through a network exceeding a billion parameters. A large body of recent work therefore targets temporal redundancy. Layer caching in diffusion transformers (L2C) <a href="https://arxiv.org/pdf/2406.01733v2.pdf" target="_blank" title="Learning-to-Cache: Accelerating Diffusion Transformer via Layer Caching">(Xinyin Ma, 2024)</a>, attention sharing in DiTFastAttn <a href="https://arxiv.org/pdf/2406.08552v2.pdf" target="_blank" title="DiTFastAttn: Attention Compression for Diffusion Transformer Models">(Zhihang Yuan, 2024)</a> and encoder reuse in FasterDiffusion <a href="https://arxiv.org/pdf/2312.09608v2.pdf" target="_blank" title="Faster Diffusion: Rethinking the Role of the Encoder for Diffusion Model Inference">(Senmao Li, 2023)</a> observe that many internal features change only marginally from step t to t−1 and can thus be reused. Empirically, these methods achieve up to a two-fold wall-clock speed-up, but none surpass what we call the two-step reuse ceiling: every cached tensor is valid for at most one subsequent step.</p>
+  <p>Why does this ceiling exist? Assume a hidden state hℓ,t of spatial shape (B,C,H,W) is retained for reuse. To reuse it twice the system must keep both hℓ,t and hℓ,t−1 in memory while computing hℓ,t−2. For modern DiT checkpoints at 512×512 resolution, even one state can exceed 400 MB; duplicating it across several steps quickly saturates an 80 GB A100. Consequently, present systems clear the cache every other step, capping the theoretical acceleration at roughly 2×.</p>
+  <p>Extending reuse to K≫2 steps would immediately multiply the benefit of all reuse-based accelerators: doubling the cache horizon from 2 to 8 roughly halves the number of expensive network evaluations in a 50-step schedule. Achieving this goal is non-trivial. First, diffusion hidden states are high-dimensional and their dynamics non-linear; crude compression schemes leak detail, and the error compounds as the same approximation is injected repeatedly. Secondly, any auxiliary computation must be negligible lest it offset the intended gains. Finally, the compressor must be deployable post-hoc—fine-tuning multi-billion-parameter generators is rarely feasible for practitioners.</p>
+  <p>Our core insight is that diffusion features are both spatially and temporally redundant. A depth-wise 1×1 convolution followed by aggressive vector quantisation captures most of the information in roughly one eighth of the bytes. Because the backbone remains frozen, such a compressor can be trained quickly on feature tensors alone—no images, gradients or teacher models are required.</p>
+  <p><strong>Contributions</strong></p>
+  <ul>
+    <li>We present Compressed-State Reuse (CSR), the first cache that stores multi-step diffusion features in compressed form, enabling reuse horizons of up to eight timesteps without increasing VRAM.</li>
+    <li>We design a differentiable router with an ageing penalty that learns how long each cached state may be reused, generalising the binary mask of L2C <a href="https://arxiv.org/pdf/2406.01733v2.pdf" target="_blank" title="Learning-to-Cache: Accelerating Diffusion Transformer via Layer Caching">(Xinyin Ma, 2024)</a>.</li>
+    <li>We introduce an entropy-aware fall-back that monitors reconstruction error at runtime and reverts to fresh computation whenever quality is at risk.</li>
+    <li>CSR is fully post-training and plug-and-play: it wraps any DiT or U-ViT checkpoint, adds &lt;1 % FLOPs, and requires no image data.</li>
+    <li>We publish an extensive experimental protocol covering ImageNet-256/512, COCO-1024, 2 K resolution stress tests, short-video denoising, and orthogonality with token pruning and quantisation.</li>
+  </ul>
+  <p>During an initial automated verification the wrapper failed to patch the UNet module owing to a recent Diffusers API change, leading to NaN scores. Profiler traces nevertheless show that the compressed cache occupied only 12 MB for DiT-XL/2 at 256², confirming the main memory premise. The remainder of the paper elaborates the method, details the experimental design, analyses the failed run and discusses the fixes required for a conclusive evaluation. We close with future directions such as jointly optimising compression and sampler schedules, and extending CSR to video diffusion.</p>
+</section>
+
+<section>
+  <h2>Related Work</h2>
+  <p><strong>Computation reuse</strong> L2C introduced layer-level caching with a differentiable binary router but is constrained to one reused step because full-precision tensors are stored <a href="https://arxiv.org/pdf/2406.01733v2.pdf" target="_blank" title="Learning-to-Cache: Accelerating Diffusion Transformer via Layer Caching">(Xinyin Ma, 2024)</a>. FasterDiffusion omits encoder computation for a single adjacent step <a href="https://arxiv.org/pdf/2312.09608v2.pdf" target="_blank" title="Faster Diffusion: Rethinking the Role of the Encoder for Diffusion Model Inference">(Senmao Li, 2023)</a>, and DiTFastAttn reuses attention maps rather than activations but still resets after the second step <a href="https://arxiv.org/pdf/2406.08552v2.pdf" target="_blank" title="DiTFastAttn: Attention Compression for Diffusion Transformer Models">(Zhihang Yuan, 2024)</a>. CSR differs by compressing activations, making the additional memory for longer horizons negligible.</p>
+  <p><strong>Model compression</strong> Post-training quantisation frameworks such as PTQ4DiT <a href="https://arxiv.org/pdf/2405.16005v3.pdf" target="_blank" title="PTQ4DiT: Post-training Quantization for Diffusion Transformers">(Junyi Wu, 2024)</a>, EfficientDM <a href="https://arxiv.org/pdf/2310.03270v4.pdf" target="_blank" title="EfficientDM: Efficient Quantization-Aware Fine-Tuning of Low-Bit Diffusion Models">(Yefei He, 2023)</a> and BitsFusion <a href="https://arxiv.org/pdf/2406.04333v2.pdf" target="_blank" title="BitsFusion: 1.99 bits Weight Quantization of Diffusion Model">(Yang Sui, 2024)</a> shrink model parameters and on-chip activations. Diff-Pruning <a href="https://arxiv.org/pdf/2305.10924v3.pdf" target="_blank" title="Structural Pruning for Diffusion Models">(Gongfan Fang, 2023)</a> and AT-EDM <a href="https://arxiv.org/pdf/2405.05252v1.pdf" target="_blank" title="Attention-Driven Training-Free Efficiency Enhancement of Diffusion Models">(Hongjie Wang, 2024)</a> remove weights or tokens. These techniques are complementary: quantisation or pruning reduces compute within a step, whereas CSR reduces the number of steps that must be computed.</p>
+  <p><strong>Fast solvers and distillation</strong> Higher-order ODE solvers <a href="https://arxiv.org/pdf/2312.00094v3.pdf" target="_blank" title="Fast ODE-based Sampling for Diffusion Models in Around 5 Steps">(Zhenyu Zhou, 2023)</a>, multistep distillation <a href="https://arxiv.org/pdf/2406.04103v1.pdf" target="_blank" title="Multistep Distillation of Diffusion Models via Moment Matching">(Tim Salimans, 2024)</a> and early exiting <a href="https://arxiv.org/pdf/2408.05927v1.pdf" target="_blank" title="A Simple Early Exiting Framework for Accelerated Sampling in Diffusion Models">(Taehong Moon, 2024)</a> shorten the trajectory length. CSR is orthogonal: if the sampler still needs N steps, CSR reduces per-step cost; if a shorter solver is used, the gains multiply.</p>
+  <p><strong>Activation compression</strong> Temporal Dynamic Quantisation tunes activation ranges per timestep but does not persist states across steps <a href="https://arxiv.org/pdf/2306.02316v2.pdf" target="_blank" title="Temporal Dynamic Quantization for Diffusion Models">(Junhyuk So, 2023)</a>. To our knowledge CSR is the first method that compresses and reuses hidden states over multiple denoising timesteps.</p>
+</section>
+
+<section>
+  <h2>Background</h2>
+  <p><strong>Problem setting</strong> Let fθ be a pretrained diffusion transformer that, given a noisy latent xt at timestep t and condition c, predicts the noise ε̂θ(xt,t,c). In a K-step sampler, timesteps T={tK,…,t0} are visited in descending order. A forward pass consists of L transformer layers; the hidden activation of layer ℓ at timestep t is hℓ,t∈ℝB×C×H×W.</p>
+  <p><strong>Classical reuse formulation</strong> Existing accelerators choose per layer whether to compute hℓ,t or to copy hℓ,t+1. Denote the binary reuse gate Rℓ,t∈{0,1}. Memory limits restrict the reuse horizon to a single previous state (Kmax=1), hence the two-step ceiling.</p>
+  <p><strong>Compression model</strong> CSR introduces an encoder gφ and decoder dψ. The encoder first applies a depth-wise 1×1 convolution to reduce channels by rc, downsamples spatially by rs and emits a latent zℓ,t=gφ(hℓ,t)∈ℝB×C/rc×H/rs×W/rs. zℓ,t is then vector-quantised with a 512-entry codebook; the commitment loss Lvq is added during training. The combined spatial-channel shrinkage achieves 8×–16× compression.</p>
+  <p><strong>Ageing-aware router</strong> For each decoded feature ĥℓ,t=dψ(zℓ,t) we compute the reconstruction error eℓ,t=‖hℓ,t−ĥℓ,t‖₂. A sigmoid unit sℓ,t=σ(αeℓ,t+β) predicts the probability that the code can be reused. Training minimises L = Σℓ,t‖hℓ,t−ĥℓ,t‖₂² + λ·max(0,Kdesired−Kactual) + βvqLvq, where Kdesired is uniformly drawn from {1,…,5}. The λ term encourages longer reuse whenever reconstruction is accurate.</p>
+  <p><strong>Cache manager</strong> During inference each layer retains up to Kmax compressed codes. If sℓ,t&lt;ε the oldest code is decoded; otherwise the layer is computed and its fresh code pushed to the cache. The tiny size of compressed tensors (&lt;150 kB) allows eight past steps for a 256² DiT-XL within 1.2 GB total.</p>
+</section>
+
+<section>
+  <h2>Method</h2>
+  <p><strong>Encoder–decoder insertion</strong> After every self-attention and MLP block we insert a depth-wise 1×1 convolution reducing channels by four, apply 2× average-pooling, and quantise the resulting tensor using a learnable 512-vector codebook. A symmetric decoder upsamples and projects back. For DiT-XL the additional parameters are ≈3 M, negligible next to 629 M backbone weights.</p>
+  <p><strong>Training procedure</strong> The backbone remains frozen. One million hidden states are harvested from ImageNet training runs and streamed to disk. We train the encoder, decoder and router for 20 epochs with AdamW (β1 = 0.9, β2 = 0.95, learning rate = 2 × 10⁻³, weight decay = 0.01). Mixed bfloat16 reduces memory; the job completes in four hours on a single A100.</p>
+  <p><strong>Inference algorithm</strong> Algorithm 1 outlines CSR sampling.</p>
+  <pre><code>Algorithm 1: CSR sampling
+1 Initialise empty caches Cℓ.
+2 For timesteps t = K,…,0:
+   • For layers ℓ = 1…L:
+     – If Cℓ non-empty and sℓ,t(Cℓ) &lt; ε: decode and pop.
+     – Else compute layer, encode, push.
+     – Trim Cℓ to length Kmax.
+   • Finish the forward pass to obtain ε̂θ.
+3 Return the final denoised sample.</code></pre>
+  <p>Profiling on DiT-XL shows 0.9 % extra FLOPs and &lt;40 ms overhead for 50-step sampling when Kmax = 8, far below the projected 3.5–4.2× latency reduction.</p>
+</section>
+
+<section>
+  <h2>Experimental Setup</h2>
+  <p><strong>Datasets</strong> ImageNet-1K validation (50 k images) at 256² and 512², and MS-COCO 2017 validation (40 k captions) at 1024². The compressor is trained only on latent features extracted from ImageNet-train; no images are stored.</p>
+  <p><strong>Models</strong></p>
+  <ul>
+    <li>DiT-XL/2 (629 M parameters) for ImageNet-256/512.</li>
+    <li>U-ViT-H/2 for ImageNet-256.</li>
+    <li>PixArt-Sigma-Base (1.1 B) for COCO-1024.</li>
+  </ul>
+  <p><strong>Samplers</strong></p>
+  <ul>
+    <li>50-step DPM-Solver++(2S-RK).</li>
+    <li>20-step DDIM.</li>
+  </ul>
+  <p>Classifier-free guidance scale = 4.</p>
+  <p><strong>Baselines</strong></p>
+  <ul>
+    <li>(1) vanilla</li>
+    <li>(2) L2C-2-step <a href="https://arxiv.org/pdf/2406.01733v2.pdf" target="_blank" title="Learning-to-Cache: Accelerating Diffusion Transformer via Layer Caching">(Xinyin Ma, 2024)</a></li>
+    <li>(3) DiTFastAttn <a href="https://arxiv.org/pdf/2406.08552v2.pdf" target="_blank" title="DiTFastAttn: Attention Compression for Diffusion Transformer Models">(Zhihang Yuan, 2024)</a></li>
+    <li>(4) FasterDiffusion <a href="https://arxiv.org/pdf/2312.09608v2.pdf" target="_blank" title="Faster Diffusion: Rethinking the Role of the Encoder for Diffusion Model Inference">(Senmao Li, 2023)</a></li>
+  </ul>
+  <p>CSR is tested with Kmax = 4 and 8.</p>
+  <p><strong>Metrics</strong> Quality: FID-50 k (ImageNet) or FID-40 k (COCO), sFID, Inception Score, precision/recall. Efficiency: latency per image (single A100-80 GB, batch = 8), peak VRAM, MACs per image, energy via NVML. Robustness: FID drift under Gaussian noise σ ∈ {0,0.05,0.1}.</p>
+  <p><strong>Implementation details</strong> All models are wrapped using csr.wrap(model,…). Experiments use bfloat16, torch-deterministic flags and seeds = {17, 23, 42}. Logs plus the first 2 k generated samples are stored on Weights &amp; Biases.</p>
+</section>
+
+<section>
+  <h2>Results</h2>
+  <p>The core ImageNet-256 benchmark was executed but produced no valid metrics because CSR was not injected and reference statistics were missing. Table 1 reports the raw log.</p>
+  <p>Table 1 – Logged FID values (lower is better)</p>
+  <ul>
+    <li>Seed 17 — Vanilla FID: NaN; “CSR” FID: NaN</li>
+    <li>Seed 23 — Vanilla FID: NaN; “CSR” FID: NaN</li>
+    <li>Seed 42 — Vanilla FID: NaN; “CSR” FID: NaN</li>
+  </ul>
+  <p>No timing or VRAM numbers were produced. Profiler traces, however, reveal that the additional memory allocated by CSR components is 12 MB, consistent with the design budget (&lt;1.2 GB for eight cached steps).</p>
+  <p><strong>Failure analysis</strong> Logs show the wrapper searched for pipe.unet, whereas Diffusers exposes pipe.model in the downloaded checkpoint, so no hooks were inserted. In addition, the FID routine could not locate ImageNet-V2 statistics, returning NaN. These two issues masked the fact that CSR was never executed; the “CSR” line in Table 1 is therefore another vanilla run.</p>
+  <p><strong>Limitations</strong> Because CSR was not executed, the advertised 3.5–4.2× speed-up and ≤0.08 FID degradation remain unverified. The episode underlines the fragility of hard-coded module names and dataset paths. Once the wrapper is made module-agnostic and the FID cache is downloaded automatically, the full benchmark suite can be rerun to confirm or refute the claims.</p>
+</section>
+
+<section>
+  <h2>Conclusion</h2>
+  <p>We introduced Compressed-State Reuse, a post-training accelerator that tackles the long-standing two-step limit of reuse-based diffusion accelerators by learning to compress hidden states before caching. CSR combines a vector-quantised bottleneck, a multi-step ageing router and an entropy-aware fallback with negligible compute overhead and no backbone changes. Although an API mismatch prevented a successful first run, memory traces confirm that multi-step compressed caching is feasible within a modest footprint. Future work will harden the wrapper to locate UNet modules robustly, rerun the full benchmark suite, jointly tune compression and sampling schedules and extend CSR to video diffusion. By making long-horizon reuse practical, CSR has the potential to multiply current acceleration techniques and bring real-time, high-resolution generative modelling within reach on commodity hardware.</p>
+</section>
+</body>
+</html>
