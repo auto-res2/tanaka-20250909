@@ -1,0 +1,114 @@
+Using CPython 3.11.13
+Creating virtual environment at: .venv
+Resolved 68 packages in 294ms
+   Building csr-diffusion @ file:///home/toma/t-80-8-a/_work/tanaka-20250909/tanaka-20250909
+Downloading transformers (11.1MiB)
+Downloading hf-xet (3.0MiB)
+Downloading tokenizers (3.2MiB)
+Downloading diffusers (3.9MiB)
+Downloading torchvision (8.2MiB)
+Downloading nvidia-cusparse-cu12 (274.9MiB)
+Downloading nvidia-cusolver-cu12 (255.1MiB)
+Downloading nvidia-cudnn-cu12 (674.0MiB)
+Downloading nvidia-nccl-cu12 (307.4MiB)
+Downloading torch (846.9MiB)
+Downloading nvidia-cublas-cu12 (566.8MiB)
+Downloading numpy (16.2MiB)
+Downloading scipy (33.7MiB)
+Downloading nvidia-cusparselt-cu12 (273.9MiB)
+ Downloading hf-xet
+ Downloading tokenizers
+      Built csr-diffusion @ file:///home/toma/t-80-8-a/_work/tanaka-20250909/tanaka-20250909
+ Downloading diffusers
+ Downloading torchvision
+ Downloading numpy
+ Downloading transformers
+ Downloading scipy
+ Downloading nvidia-cusolver-cu12
+ Downloading nvidia-cusparse-cu12
+ Downloading nvidia-cusparselt-cu12
+ Downloading nvidia-nccl-cu12
+ Downloading nvidia-cublas-cu12
+ Downloading nvidia-cudnn-cu12
+ Downloading torch
+Prepared 21 packages in 52.78s
+Installed 56 packages in 6.96s
+ + certifi==2025.8.3
+ + charset-normalizer==3.4.3
+ + clean-fid==0.1.35
+ + contourpy==1.3.3
+ + csr-diffusion==0.1.0 (from file:///home/toma/t-80-8-a/_work/tanaka-20250909/tanaka-20250909)
+ + cycler==0.12.1
+ + diffusers==0.35.1
+ + filelock==3.19.1
+ + fonttools==4.59.2
+ + fsspec==2025.9.0
+ + hf-xet==1.1.9
+ + huggingface-hub==0.34.4
+ + idna==3.10
+ + importlib-metadata==8.7.0
+ + jinja2==3.1.6
+ + kiwisolver==1.4.9
+ + markupsafe==3.0.2
+ + matplotlib==3.10.6
+ + mpmath==1.3.0
+ + networkx==3.5
+ + numpy==2.3.2
+ + nvidia-cublas-cu12==12.8.4.1
+ + nvidia-cuda-cupti-cu12==12.8.90
+ + nvidia-cuda-nvrtc-cu12==12.8.93
+ + nvidia-cuda-runtime-cu12==12.8.90
+ + nvidia-cudnn-cu12==9.10.2.21
+ + nvidia-cufft-cu12==11.3.3.83
+ + nvidia-cufile-cu12==1.13.1.3
+ + nvidia-curand-cu12==10.3.9.90
+ + nvidia-cusolver-cu12==11.7.3.90
+ + nvidia-cusparse-cu12==12.5.8.93
+ + nvidia-cusparselt-cu12==0.7.1
+ + nvidia-nccl-cu12==2.27.3
+ + nvidia-nvjitlink-cu12==12.8.93
+ + nvidia-nvtx-cu12==12.8.90
+ + packaging==25.0
+ + pillow==11.3.0
+ + pyparsing==3.2.3
+ + python-dateutil==2.9.0.post0
+ + pyyaml==6.0.2
+ + regex==2025.9.1
+ + requests==2.32.5
+ + safetensors==0.6.2
+ + scipy==1.16.1
+ + setuptools==80.9.0
+ + six==1.17.0
+ + sympy==1.14.0
+ + tokenizers==0.22.0
+ + torch==2.8.0
+ + torchvision==0.23.0
+ + tqdm==4.67.1
+ + transformers==4.56.1
+ + triton==3.4.0
+ + typing-extensions==4.15.0
+ + urllib3==2.5.0
+ + zipp==3.23.0
+Passed `torch_dtype` torch.float32 is not a `torch.dtype`. Defaulting to `torch.float32`.
+Cannot initialize model with low cpu memory usage because `accelerate` was not found in the environment. Defaulting to `low_cpu_mem_usage=False`. It is strongly recommended to install `accelerate` for faster and less memory-intense model loading. You can do so with: 
+```
+pip install accelerate
+```
+.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/toma/t-80-8-a/_work/tanaka-20250909/tanaka-20250909/src/main.py", line 178, in <module>
+    main()
+  File "/home/toma/t-80-8-a/_work/tanaka-20250909/tanaka-20250909/src/main.py", line 167, in main
+    results = _run_experiment()
+              ^^^^^^^^^^^^^^^^^
+  File "/home/toma/t-80-8-a/_work/tanaka-20250909/tanaka-20250909/src/main.py", line 104, in _run_experiment
+    pipe = DiffusionPipeline.from_pretrained(model_id, torch_dtype="auto")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/toma/t-80-8-a/_work/tanaka-20250909/tanaka-20250909/.venv/lib/python3.11/site-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/toma/t-80-8-a/_work/tanaka-20250909/tanaka-20250909/.venv/lib/python3.11/site-packages/diffusers/pipelines/pipeline_utils.py", line 829, in from_pretrained
+    raise ValueError(
+ValueError: The provided pretrained_model_name_or_path "https://dl.fbaipublicfiles.com/DiT/models/DiT-XL-2-256x256.pt" is neither a valid local path nor a valid repo id. Please check the parameter.
