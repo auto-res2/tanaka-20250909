@@ -21,16 +21,16 @@ from .preprocess import set_global_seed
 # -----------------------------------------------------------------------------
 CONFIG_PATH = pathlib.Path(__file__).parent.parent / "config" / "config.yaml"
 
+
 def load_cfg(path: os.PathLike | None = None) -> Dict[str, Any]:
     with open(path or CONFIG_PATH, "r") as f:
         cfg: Dict[str, Any] = yaml.safe_load(f)
     return cfg
 
 # -----------------------------------------------------------------------------
-#  Experiment runner
+#  Experiment runner – uses iteration3 directory as mandated
 # -----------------------------------------------------------------------------
-# Use mandatory research directory as required by the problem statement
-RESEARCH_DIR = pathlib.Path(".research") / "iteration2"
+RESEARCH_DIR = pathlib.Path(".research") / "iteration3"
 RESEARCH_DIR.mkdir(parents=True, exist_ok=True)
 (RESEARCH_DIR / "images").mkdir(exist_ok=True)
 

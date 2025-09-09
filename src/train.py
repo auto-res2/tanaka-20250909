@@ -33,12 +33,15 @@ class ChangeFormerCore(nn.Module):
 
     def __init__(self, horizon: int, input_dim: int = 1, d_model: int = 256):
         super().__init__()
+        self.horizon = horizon
+        self.input_dim = input_dim  # number of variables (channels)
         self.embed = nn.Linear(input_dim, d_model)
         enc_layer = nn.TransformerEncoderLayer(
             d_model=d_model, nhead=8, batch_first=True, dim_feedforward=d_model * 4
         )
         self.encoder = nn.TransformerEncoder(enc_layer, num_layers=4)
-        self.head = nn.Linear(d_model, horizon)
+        # Output a forecast for each variable at each horizon step
+        self.head = nn.Linear(d_model, horizon * input_dim)
         self.ocpd = OCPDLayer(d_model)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
@@ -46,7 +49,8 @@ class ChangeFormerCore(nn.Module):
         x = self.embed(x)
         ocp = self.ocpd(x.transpose(1, 2))
         h = self.encoder(x)
-        out = self.head(h[:, -1])  # predict using final time-step representation
+        out_flat = self.head(h[:, -1])  # (B, horizon * input_dim)
+        out = out_flat.view(x.size(0), self.horizon, self.input_dim)  # (B, H, C)
         return out, ocp
 
 
